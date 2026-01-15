@@ -12,9 +12,9 @@ const LoginForm = () => {
     useValidation(
       {
         login: (value) => (value ? null : "Insira seu login"),
-        senha: (value) => (value ? null : "Insira sua senha"),
+        password: (value) => (value ? null : "Insira sua senha"),
       },
-      { login: "", senha: "" }
+      { login: "", password: "" }
     );
 
   const {
@@ -77,12 +77,12 @@ const LoginForm = () => {
         <Input
           label="Senha"
           type={isPasswordVisible ? "text" : "password"}
-          value={values.senha}
-          onChange={(e) => handleChange("senha", e.target.value)}
-          onBlur={() => validateField("senha", values.senha)}
+          value={values.password}
+          onChange={(e) => handleChange("password", e.target.value)}
+          onBlur={() => validateField("password", values.password)}
           notification={{
-            isError: Boolean(errors.senha),
-            notification: errors.senha ?? "",
+            isError: Boolean(errors.password),
+            notification: errors.password ?? "",
           }}
         />
         <button
