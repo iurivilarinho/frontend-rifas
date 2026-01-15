@@ -47,7 +47,7 @@ export const usePostReservation = () => {
 
   return useMutation<PagSeguroOrder, unknown, Reservation>({
     mutationFn: postReservation,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rifas"] });
     },
   });
