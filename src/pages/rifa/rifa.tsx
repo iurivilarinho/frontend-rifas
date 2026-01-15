@@ -45,7 +45,7 @@ const RifaPage = () => {
   useEffect(() => {
     if (dataRifa) {
       const soldNumbers: Set<string> = new Set();
-      (dataRifa as Rifa)?.cotas.forEach((cota: Cota) => {
+      (dataRifa as Rifa)?.quotas?.forEach((cota: Cota) => {
         if (cota.sold) {
           soldNumbers.add(String(cota.number));
         }
@@ -194,10 +194,8 @@ const RifaPage = () => {
       </div>
       <div className="flex flex-col items-center">
         <MultiStepForm
-          userCreation={dataRifa?.userCreation}
-          rifaId={dataRifa?.id}
+          raffleId={dataRifa?.id}
           disableButton={selectedButtons.size > 0 ? false : true}
-          valueQrCode={user?.paymentInformation?.pixKey || ""}
           quotesSelected={selectedButtons}
           totalPrice={totalPrice}
         />

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Função para validar o CPF
 const isValidCPF = (cpf: string) => {
-  cpf = cpf.replace(/[^\d]+/g, "");  // Remove caracteres não numéricos
+  cpf = cpf.replace(/[^\d]+/g, ""); // Remove caracteres não numéricos
 
   if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) {
     return false;

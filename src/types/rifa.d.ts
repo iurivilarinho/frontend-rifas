@@ -8,6 +8,9 @@ export interface Rifa {
   descriptionAward: string;
   quotaPrice: number;
   images: Document[];
+  cover: Document;
   showQuotas: boolean;
-  cotas: Cota[];
+  quotas: Cota[];
+  numberOfShares: number;
+  soldPercentage?: number;
 }

@@ -2,7 +2,7 @@ import { Pessoa } from "./pessoa";
 
 interface Reservation {
   id?: number;
-  rifaId: number;
-  quotasId: number[];
-  userPurchase: UserFormType;
+  raffleId: number;
+  quotaIds: number[];
+  buyer: UserFormType;
 }

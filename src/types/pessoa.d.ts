@@ -12,5 +12,4 @@ export interface Pessoa {
   email: string;
   endereco: Endereco;
   informacaoSeguranca: InformacaoSeguranca;
-  paymentInformation: PaymentInformation
 }

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import httpRequest from "../axios/httpRequests";
 import { Reservation } from "@/types/reserva";
+import { PagSeguroOrder } from "@/types/pagSeguroOrder";
 
 const postReservation = async (reservation: Reservation) => {
   const { data } = await httpRequest.post("/reservation", reservation);
@@ -44,9 +45,9 @@ export const useGetReservationById = (id: number | string) => {
 export const usePostReservation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<PagSeguroOrder, unknown, Reservation>({
     mutationFn: postReservation,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["rifas"] });
     },
   });

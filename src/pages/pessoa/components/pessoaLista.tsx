@@ -98,7 +98,7 @@ export function ListaPessoa() {
                 onClickUpdate={() => handleButtonClickUpdate(pessoa)}
               >
                 <TableCell className="font-medium">
-                  {pessoa.nomeCompleto}
+                  {pessoa.nome}
                 </TableCell>
                 <TableCell>{pessoa.email}</TableCell>
                 <TableCell>{pessoa.telefoneCelular}</TableCell>

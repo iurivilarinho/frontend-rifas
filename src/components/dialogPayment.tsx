@@ -19,14 +19,14 @@ interface RandomProps {
   quotesSelected: Set<string>;
   valueQrCode: string;
   disableButton: boolean;
-  rifaId: number;
+  raffleId: number;
 }
 
 const DialogPayment = ({
   quotesSelected,
   totalPrice,
   disableButton,
-  rifaId,
+  raffleId,
 }: RandomProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -47,9 +47,9 @@ const DialogPayment = ({
 
     // Cria o objeto que será passado, tipado como Reservation
     const reservation: Reservation = {
-      quotasId: quotasId,
-      userPurchase: user,
-      rifaId: rifaId,
+      quotaIds: quotasId,
+      buyer: user,
+      raffleId: raffleId,
     };
 
     // Faz a requisição para a API usando o mutate

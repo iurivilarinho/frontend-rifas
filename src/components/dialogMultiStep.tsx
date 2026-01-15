@@ -1,13 +1,12 @@
-import { Stepper, Step, StepLabel } from "@mui/material";
-import { useState } from "react";
-import PaymentCard from "./PaymentCard";
-import UserForm from "@/pages/usuario/usuarioForm";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "./button/button";
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import UserForm from "@/pages/usuario/usuarioForm";
 import { UserFormType, userFormSchema } from "@/types/usuario";
-import { Pessoa } from "@/types/pessoa";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Step, StepLabel, Stepper } from "@mui/material";
+import { useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { Button } from "./button/button";
+import PaymentCard from "./PaymentCard";
 
 // Importe o schema de validação
 
@@ -16,16 +15,12 @@ const steps = ["Identificar Comprador", "Opções de Pagamento"];
 interface MultiStepProps {
   totalPrice: number;
   quotesSelected: Set<string>;
-  valueQrCode: string;
   disableButton: boolean;
-  rifaId: number;
-  userCreation: Pessoa;
+  raffleId: number;
 }
 
 const MultiStepForm = ({
-  userCreation,
-  rifaId,
-  valueQrCode,
+  raffleId,
   quotesSelected,
   totalPrice,
   disableButton,
@@ -58,11 +53,9 @@ const MultiStepForm = ({
       case 1:
         return (
           <PaymentCard
-            userCreation={userCreation}
             totalPrice={totalPrice}
             quotesSelected={quotesSelected}
-            valueQrCode={valueQrCode}
-            rifaId={rifaId}
+            raffleId={raffleId}
             userData={userData}
           />
         );

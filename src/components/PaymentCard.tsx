@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,30 +10,36 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { usePostReservation } from "@/lib/api/tanstackQuery/reservation";
 import { Reservation } from "@/types/reserva";
-import { CopyAndPaste } from "pixjs";
 import { Button } from "./button/button";
 import InputCopy from "./input/inputCopy";
-import QRCodeGenerator from "./qrCodeGenerator";
 import { UserFormType } from "@/types/usuario";
-import { Pessoa } from "@/types/pessoa";
+import { PagSeguroOrder } from "@/types/pagSeguroOrder";
+import { onlyDigits } from "@/utils/formatters";
 
 interface PaymentCardProps {
   totalPrice: number;
   quotesSelected: Set<string>;
-  valueQrCode: string;
-  rifaId: number;
+  raffleId: number;
   userData: UserFormType | null;
-  userCreation: Pessoa;
+}
+
+function formatMsToMMSS(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 const PaymentCard = ({
-  userCreation,
   quotesSelected,
   totalPrice,
-  rifaId,
+  raffleId,
   userData,
 }: PaymentCardProps) => {
   const { mutate: postReservation, isPending } = usePostReservation();
+
+  const [order, setOrder] = useState<PagSeguroOrder | null>(null);
+  const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
 
   const submitForm = () => {
     if (!userData) {
@@ -40,31 +47,67 @@ const PaymentCard = ({
       return;
     }
 
-    const quotasId = Array.from(quotesSelected).map(Number);
+    const quotaIds = Array.from(quotesSelected ?? []).map(Number);
+
+    if (quotaIds.length === 0) {
+      console.error("Nenhuma cota selecionada");
+      return;
+    }
 
     const reservation: Reservation = {
-      quotasId: quotasId,
-      userPurchase: userData,
-      rifaId: rifaId,
+      quotaIds,
+      buyer: { ...userData, cpf: onlyDigits(userData.cpf) },
+      raffleId,
     };
 
     postReservation(reservation, {
-      onSuccess: () => {
-        console.log("Reserva realizada com sucesso!");
+      onSuccess: (data: PagSeguroOrder) => {
+        setOrder(data);
+
+        const expirationIso = data.qr_codes?.[0]?.expiration_date ?? null;
+        if (expirationIso) {
+          const expirationMs = new Date(expirationIso).getTime();
+          setTimeLeftMs(Math.max(0, expirationMs - Date.now()));
+        } else {
+          setTimeLeftMs(null);
+        }
       },
       onError: (error) => {
         console.error("Erro ao realizar reserva:", error);
       },
     });
   };
-{console.log(userCreation.paymentInformation)}
-  const copyAndPaste = CopyAndPaste({
-    name: userCreation.nome,
-    key: userCreation.paymentInformation.pixKey,
-    amount: totalPrice,
-    city: "Ituiutaba",
-    id: "000000",
-  });
+
+  // contador (atualiza 1x por segundo)
+  useEffect(() => {
+    if (!order) return;
+
+    const expirationIso = order.qr_codes?.[0]?.expiration_date ?? null;
+    if (!expirationIso) return;
+
+    const expirationMs = new Date(expirationIso).getTime();
+
+    const tick = () => {
+      const diff = Math.max(0, expirationMs - Date.now());
+      setTimeLeftMs(diff);
+    };
+
+    tick();
+    const intervalId = window.setInterval(tick, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [order]);
+
+  const qr = order?.qr_codes?.[0] ?? null;
+
+  const qrPngHref = useMemo(() => {
+    if (!qr) return null;
+    return qr.links.find((l) => l.rel === "QRCODE.PNG")?.href ?? null;
+  }, [qr]);
+
+  const pixCopyPaste = qr?.text ?? "";
+
+  const isExpired = timeLeftMs !== null && timeLeftMs <= 0;
 
   if (isPending) {
     return (
@@ -80,10 +123,12 @@ const PaymentCard = ({
         <CardTitle>Opções de Pagamento</CardTitle>
         <CardDescription>Escolha uma das formas de pagamento</CardDescription>
       </CardHeader>
+
       <CardContent>
         <p>Confira abaixo as cotas que você está reservando:</p>
+
         <div className="flex flex-row flex-wrap p-2 overflow-y-auto max-h-28">
-          {Array.from(quotesSelected).map((number, index) => (
+          {Array.from(quotesSelected ?? []).map((number, index) => (
             <div
               key={index}
               className="flex items-center justify-center rounded border ml-1 mt-1 w-8"
@@ -92,31 +137,78 @@ const PaymentCard = ({
             </div>
           ))}
         </div>
+
         <p className="my-5 font-bold">
           Valor total:
           {totalPrice
             .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
             .replace("R$", "")}
         </p>
-        <p>QR code para pagamento:</p>
 
-        <Dialog>
-          <DialogTrigger>
-            <Button className="mt-5">Visualizar QR code</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <QRCodeGenerator
-              pixkey="+5534996444008"
-              merchant="Your Name"
-              city="Your City"
-              amount={totalPrice}
-            />
-          </DialogContent>
-        </Dialog>
-        <div className="mt-6">
-          <InputCopy value={copyAndPaste.payload}></InputCopy>
-        </div>
+        {/* some o botão depois que a cobrança foi gerada */}
+        {!order && (
+          <div className="mt-4">
+            <Button onClick={submitForm} disabled={!userData}>
+              Gerar cobrança PIX
+            </Button>
+          </div>
+        )}
+
+        {order && (
+          <>
+            <div className="mt-6">
+              <p className="font-semibold">Tempo para pagar:</p>
+              {timeLeftMs === null ? (
+                <p>Indisponível</p>
+              ) : isExpired ? (
+                <p className="text-red-600">Expirado</p>
+              ) : (
+                <p className="text-lg">{formatMsToMMSS(timeLeftMs)}</p>
+              )}
+            </div>
+
+            <p className="mt-6">QR code para pagamento:</p>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="mt-3" disabled={!qrPngHref || isExpired}>
+                  Visualizar QR code
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent>
+                {qrPngHref ? (
+                  <img
+                    src={qrPngHref}
+                    alt="QR Code PIX"
+                    className="w-full h-auto"
+                  />
+                ) : (
+                  <p>QR Code indisponível.</p>
+                )}
+              </DialogContent>
+            </Dialog>
+
+            <div className="mt-6">
+              <InputCopy value={pixCopyPaste} />
+            </div>
+
+            {isExpired && (
+              <div className="mt-4">
+                <Button
+                  onClick={() => {
+                    setOrder(null);
+                    setTimeLeftMs(null);
+                  }}
+                >
+                  Gerar nova cobrança
+                </Button>
+              </div>
+            )}
+          </>
+        )}
       </CardContent>
+
       <CardFooter className="w-full flex justify-center p-2">
         <div className="flex items-center justify-center p-2 rounded">
           <a
@@ -125,7 +217,7 @@ const PaymentCard = ({
             rel="noopener noreferrer"
             className="items-center rounded px-4 py-1"
           >
-            <Button onClick={submitForm}>
+            <Button disabled={!order || isExpired} onClick={() => {}}>
               Enviar comprovante de pagamento
             </Button>
           </a>

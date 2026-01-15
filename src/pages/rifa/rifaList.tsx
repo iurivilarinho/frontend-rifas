@@ -52,10 +52,7 @@ const RifaList = () => {
   return (
     <div>
       {rifas.map((rifa: Rifa) => {
-        const totalCotas = rifa.cotas.length;
-        const cotasVendidas = rifa.cotas.filter((cota) => cota.sold).length;
-        const porcentagemVendida =
-          cotasVendidas === 0 ? 0 : (cotasVendidas / totalCotas) * 100;
+        const porcentagemVendida = rifa.soldPercentage;
 
         return (
           <div className="relative my-3" key={rifa.id}>
@@ -93,7 +90,7 @@ const RifaList = () => {
                   <CardContent className="relative text-sm truncate"></CardContent>
                   <CardFooter className="relative flex justify-between text-xs">
                     <p>Preço da Cota: {rifa.quotaPrice}</p>
-                    <p>{porcentagemVendida.toFixed(2)}% vendido</p>
+                    <p>{porcentagemVendida?.toFixed(2)}% vendido</p>
                   </CardFooter>
                 </div>
               </div>
