@@ -1,4 +1,5 @@
 import Loading from "@/components/loading";
+import RifaThumb from "@/components/rifasThumb";
 import {
   Card,
   CardContent,
@@ -62,17 +63,9 @@ const RifaList = () => {
             >
               {/* Imagem na esquerda */}
               <div className="w-28 h-full bg-black/40">
-                <img
-                  src={
-                    rifa.images && rifa.images.length > 0
-                      ? `data:${rifa.images[0].contentType};base64,${rifa.images[0].documento}`
-                      : ""
-                  }
-                  alt={
-                    rifa.images && rifa.images.length > 0
-                      ? rifa.images[0].nome
-                      : "Imagem não disponível"
-                  }
+                <RifaThumb
+                  documentId={rifa.cover.id} // aqui é o ID do documento
+                  alt={rifa.cover.name ?? "Imagem não disponível"}
                   className="w-full h-full object-cover rounded-l"
                 />
               </div>

@@ -9,14 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Menu,
-  NotebookPen,
-  Settings,
-  Share2,
-  Ticket,
-  UserRoundCheck,
-} from "lucide-react"; // Adiciona o ícone de menu e fechar
+import { Menu, NotebookPen, Settings, UserRoundCheck } from "lucide-react"; // Adiciona o ícone de menu e fechar
 import logo from "@/img/logo.png";
 
 const Home = () => {

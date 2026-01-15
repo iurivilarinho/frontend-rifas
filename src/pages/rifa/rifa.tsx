@@ -2,7 +2,7 @@ import ButtonRifa from "@/components/button/buttonRifa";
 import DialogInterval from "@/components/dialogInterval";
 import MultiStepForm from "@/components/dialogMultiStep";
 import DialogRandom from "@/components/dialogRandom";
-import ImageDisplay from "@/components/image/ImageDisplay";
+import DisplayImage from "@/components/image/ImageDisplay";
 import {
   Card,
   CardContent,
@@ -22,7 +22,6 @@ import { useGetRifaById } from "@/lib/api/tanstackQuery/rifa";
 import { Pessoa } from "@/types/pessoa";
 import { Rifa } from "@/types/rifa";
 import { useEffect, useState } from "react";
-import { Document } from "../../types/document";
 import { useParams } from "react-router-dom";
 import BarraPorgresso from "../pessoa/components/barraProgresso";
 
@@ -105,11 +104,13 @@ const RifaPage = () => {
           <CardContent>
             <Carousel opts={{ loop: true }}>
               <CarouselContent>
-                {dataRifa?.images?.map((foto: Document) => (
-                  <CarouselItem key={foto.id} className="basis-full">
-                    <ImageDisplay {...foto}></ImageDisplay>
-                  </CarouselItem>
-                ))}
+                {dataRifa?.images?.map(
+                  (foto: { id: number; name?: string }) => (
+                    <CarouselItem key={foto.id} className="basis-full">
+                      <DisplayImage documentId={foto.id} alt={foto.name} />
+                    </CarouselItem>
+                  )
+                )}
               </CarouselContent>
               <CarouselPrevious />
               <CarouselNext />

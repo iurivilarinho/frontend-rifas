@@ -1,6 +1,7 @@
 export interface Document {
-    id?: number;
-    nome: string;
-    contentType: string;
-    documento: string;
+  id?: number;
+  name: string;
+  contentType: string;
+  document: string;
+  size: number;
 }
