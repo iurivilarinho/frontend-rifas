@@ -19,14 +19,22 @@ const ButtonRifa = ({
   sold = false,
   userPurchase = false,
 }: ButtonRifaProps) => {
-  // Define disabled como true se sold for true
-  const isDisabled = sold || disabled;
+  const isDisabled = sold || userPurchase || disabled;
 
   return (
     <button
-      onClick={onClickSelect}
+      type="button"
+      onClick={isDisabled ? undefined : onClickSelect}
       disabled={isDisabled}
-      className={`py-2 px-4 rounded border ${userPurchase ? "bg-green-500" : isDisabled ? "bg-gray-500 text-gray-200 cursor-not-allowed" : sold ? "bg-red-300 text-white" : selected ? "bg-blue-500 text-white" : "bg-white text-black"} ${className}`}
+      className={`py-2 px-4 rounded border ${
+        userPurchase
+          ? "bg-green-500 text-white cursor-not-allowed"
+          : isDisabled
+            ? "bg-gray-500 text-gray-200 cursor-not-allowed"
+            : selected
+              ? "bg-blue-500 text-white"
+              : "bg-white text-black"
+      } ${className}`}
     >
       {label}
     </button>

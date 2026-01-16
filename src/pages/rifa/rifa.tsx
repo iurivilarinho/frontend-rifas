@@ -68,20 +68,23 @@ const RifaPage = () => {
 
   // Função para alternar a seleção dos botões
   const handleButtonClick = (label: string) => {
+    // bloqueia se estiver vendida (verde ou qualquer vendida)
+    if (soldButtons.has(label)) return;
+
     setSelectedButtons((prev) => {
       const updated = new Set(prev);
-      if (updated.has(label)) {
-        updated.delete(label); // Desmarcar se já estiver selecionado
-      } else {
-        updated.add(label); // Marcar se não estiver selecionado
-      }
+
+      if (updated.has(label)) updated.delete(label);
+      else updated.add(label);
+
       setTotalPrice((dataRifa?.quotaPrice ?? 0) * updated.size);
       return updated;
     });
   };
-  const totalCotas = dataRifa?.cotas?.length ? dataRifa.cotas.length : 0;
-  const cotasVendidas = dataRifa?.cotas?.length
-    ? dataRifa.cotas.filter((cota: Cota) => cota.sold).length
+
+  const totalCotas = dataRifa?.quotas?.length ? dataRifa.quotas.length : 0;
+  const cotasVendidas = dataRifa?.quotas?.length
+    ? dataRifa.quotas.filter((cota: Cota) => cota.sold).length
     : 0;
   const porcentagemVendida =
     cotasVendidas === 0 ? 0 : (cotasVendidas / totalCotas) * 100;
@@ -166,14 +169,14 @@ const RifaPage = () => {
           <CardContent className="flex  flex-col items-center justify-center">
             <div className="flex justify-between w-full">
               <DialogInterval
-                max={dataRifa?.cotas.length}
+                max={dataRifa?.quotas.length}
                 onGenerate={handleGeneratedNumbers}
                 selectedNumbers={soldButtons}
               />
               <p className="mt-5 mx-2">ou</p>
               <DialogRandom
                 onGenerate={handleGeneratedNumbers}
-                numberOfShares={dataRifa?.cotas.length}
+                numberOfShares={dataRifa?.quotas.length}
                 selectedNumbers={soldButtons}
               />
             </div>
@@ -203,7 +206,7 @@ const RifaPage = () => {
       </div>
       {dataRifa?.showQuotas && (
         <div className="grid grid-cols-5 gap-2 mx-10 overflow-y-auto max-h-96">
-          {dataRifa?.cotas.map((cota: Cota) => (
+          {dataRifa?.quotas.map((cota: Cota) => (
             <ButtonRifa
               key={cota.id}
               label={cota.number}
@@ -211,6 +214,7 @@ const RifaPage = () => {
               selected={selectedButtons.has(String(cota.number))}
               sold={cota.sold}
               userPurchase={cota.userPurchaseId === user?.id}
+              disabled={cota.userPurchaseId === user?.id} // <- trava clique se estiver verde
             />
           ))}
         </div>
