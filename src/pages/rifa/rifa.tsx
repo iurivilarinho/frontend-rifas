@@ -19,7 +19,6 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useGetRifaById } from "@/lib/api/tanstackQuery/rifa";
-import { Pessoa } from "@/types/pessoa";
 import { Rifa } from "@/types/rifa";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -56,8 +55,6 @@ const RifaPage = () => {
   const [totalPrice, setTotalPrice] = useState(0);
 
   // esta errado, pegar do usuario criador da rifa, localstorage tem que ser o comprador
-  const userString = localStorage.getItem("user");
-  const user: Pessoa | null = userString ? JSON.parse(userString) : null;
 
   const handleGeneratedNumbers = (numbers: number[]) => {
     const updated = new Set(numbers.map(String));
@@ -213,8 +210,7 @@ const RifaPage = () => {
               onClickSelect={() => handleButtonClick(String(cota.number))}
               selected={selectedButtons.has(String(cota.number))}
               sold={cota.sold}
-              userPurchase={cota.userPurchaseId === user?.id}
-              disabled={cota.userPurchaseId === user?.id} // <- trava clique se estiver verde
+              reservation={cota.reservationId != null}
             />
           ))}
         </div>
