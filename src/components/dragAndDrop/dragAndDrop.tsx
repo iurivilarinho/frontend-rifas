@@ -1,12 +1,12 @@
 import { Accept, useDropzone } from "react-dropzone";
 import { Notification, NotificationProps } from "../input/notification";
-import { cn } from "@/lib/utils";
+import { mergeClasses } from "@/lib/mergeClasses";
 import UploadCloudIcon from "@/assets/icons/uploadCloud";
 import UploadImageIcon from "@/assets/icons/uploadImageIcon";
 import { Button } from "../button/button";
-import { Label } from "../input/label";
 import { useState, useEffect } from "react";
 import CloseIcon from "@/assets/icons/closeIcon";
+import { Label } from "../input/Label";
 
 // Aceita tanto arquivos novos (File) quanto arquivos do backend (Document)
 interface Document {
@@ -54,13 +54,13 @@ const DragAndDrop = ({
     if (isExisting) {
       // Remove um arquivo existente
       const updatedExistingFiles = existingFiles.filter(
-        (file) => file.nome !== fileName
+        (file) => file.nome !== fileName,
       );
       setExistingFiles(updatedExistingFiles);
     } else {
       // Remove um arquivo novo
       const updatedFiles = selectedFiles.filter(
-        (file) => file.name !== fileName
+        (file) => file.name !== fileName,
       );
       setSelectedFiles(updatedFiles);
       if (onAddFile) {
@@ -74,9 +74,9 @@ const DragAndDrop = ({
       {label && <Label htmlFor={id}>{label}</Label>}
       <div
         {...getRootProps({
-          className: cn(
+          className: mergeClasses(
             "flex flex-col items-center justify-center border-2 border-dashed rounded-md text-center gap-2 p-6",
-            isDragActive ? "border-primary bg-muted" : "border-slate-300"
+            isDragActive ? "border-primary bg-muted" : "border-slate-300",
           ),
         })}
       >

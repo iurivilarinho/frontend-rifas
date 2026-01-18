@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Button } from "./button/button";
 import { Dialog, DialogContent, DialogTrigger } from "./dialog/dialog";
-import { Input } from "./input/input";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Field, FieldError, FieldLabel } from "./input/Field";
+import { Input } from "./input/Input";
 
 const isValidCPF = (cpf: string) => {
   cpf = cpf.replace(/[^\d]+/g, ""); // Remove caracteres não numéricos
@@ -86,14 +87,22 @@ const BottomNavBar = () => {
           </DialogTrigger>
           <DialogContent>
             <div className="flex flex-col justify-center">
-              <Input
-                label="Informe o CPF usado na compra"
-                {...register("cpf")}
-                notification={{
-                  isError: Boolean(errors.cpf),
-                  notification: errors.cpf?.message,
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="cpf">
+                  Informe o CPF usado na compra
+                </FieldLabel>
+
+                <Input
+                  id="cpf"
+                  {...register("cpf")}
+                  aria-invalid={Boolean(errors.cpf)}
+                />
+
+                {errors.cpf?.message && (
+                  <FieldError>{errors.cpf.message}</FieldError>
+                )}
+              </Field>
+
               <Button
                 className="mt-3"
                 onClick={handleSubmit((data) => {

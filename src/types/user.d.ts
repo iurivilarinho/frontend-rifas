@@ -1,4 +1,4 @@
-export interface Pessoa {
+export interface User {
   id: number;
   foto?: File;
   nome: string;

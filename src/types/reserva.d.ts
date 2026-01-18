@@ -1,4 +1,4 @@
-import { Pessoa } from "./pessoa";
+import { Pessoa } from "./user";
 
 interface Reservation {
   id?: number;

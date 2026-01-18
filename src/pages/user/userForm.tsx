@@ -1,12 +1,12 @@
 import { Button } from "@/components/button/button";
 import { useCustomDialogContext } from "@/components/dialog/useCustomDialogContext";
-import { Input } from "@/components/input/input";
+import { Input } from "@/components/input/Input";
 import { useGetCEP } from "@/lib/api/tanstackQuery/cep";
 import {
-  useGetPessoaById,
-  usePostPessoa,
-  usePutPessoa,
-} from "@/lib/api/tanstackQuery/pessoa";
+  useGetUserById,
+  usePostUser,
+  usePutUser,
+} from "@/lib/api/tanstackQuery/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { Path, useForm } from "react-hook-form";
@@ -24,6 +24,7 @@ import {
   IdCard,
   CalendarDays,
 } from "lucide-react";
+import { Field, FieldError, FieldLabel } from "@/components/input/Field";
 
 const FORM_TYPES = ["create", "edit", "view"] as const;
 type FormType = (typeof FORM_TYPES)[number];
@@ -79,7 +80,7 @@ function buildUsuarioFormData(values: UsuarioFormValues) {
   const formData = new FormData();
   formData.append(
     "form",
-    new Blob([JSON.stringify(values)], { type: "application/json" })
+    new Blob([JSON.stringify(values)], { type: "application/json" }),
   );
   return formData;
 }
@@ -117,21 +118,21 @@ const UserForm = () => {
     data: dataUsuario,
     isLoading: isLoadingGet,
     error: errorGet,
-  } = useGetPessoaById(shouldFetch ? (userId as string) : "");
+  } = useGetUserById(shouldFetch ? (userId as string) : "");
 
   const {
     mutate: postUsuario,
     isPending: isPendingPost,
     isSuccess: isSuccessPost,
     error: errorPost,
-  } = usePostPessoa();
+  } = usePostUser();
 
   const {
     mutate: putUsuario,
     isPending: isPendingPut,
     isSuccess: isSuccessPut,
     error: errorPut,
-  } = usePutPessoa();
+  } = usePutUser();
 
   const {
     setValue,
@@ -150,11 +151,11 @@ const UserForm = () => {
 
   const handleChange = <TPath extends Path<UsuarioFormValues>>(
     path: TPath,
-    value: any
+    value: any,
   ) => setValue(path, value, { shouldDirty: true });
 
   const validateField = async <TPath extends Path<UsuarioFormValues>>(
-    path: TPath
+    path: TPath,
   ) => {
     await trigger(path);
   };
@@ -212,7 +213,7 @@ const UserForm = () => {
 
   const isLoading = useMemo(
     () => isPendingPost || isPendingPut || isLoadingGet,
-    [isPendingPost, isPendingPut, isLoadingGet]
+    [isPendingPost, isPendingPut, isLoadingGet],
   );
 
   const submitForm = async () => {
@@ -224,7 +225,7 @@ const UserForm = () => {
   const updateForm = async () => {
     const ok = await validateForm();
     if (!ok) return;
-    putUsuario({ pessoa: buildUsuarioFormData(formValues), id: userId ?? "" });
+    putUsuario({ user: buildUsuarioFormData(formValues), id: userId ?? "" });
   };
 
   const handlePrimaryAction = () =>
@@ -273,81 +274,105 @@ const UserForm = () => {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                label="Nome Completo"
-                value={formValues.nomeCompleto}
-                onChange={(e) => handleChange("nomeCompleto", e.target.value)}
-                onBlur={() => validateField("nomeCompleto")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.nomeCompleto?.message),
-                  notification: errors.nomeCompleto?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="nomeCompleto">Nome Completo</FieldLabel>
+                <Input
+                  id="nomeCompleto"
+                  value={formValues.nomeCompleto}
+                  onChange={(e) => handleChange("nomeCompleto", e.target.value)}
+                  onBlur={() => validateField("nomeCompleto")}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.nomeCompleto?.message)}
+                />
+                {errors.nomeCompleto?.message && (
+                  <FieldError>{errors.nomeCompleto.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                label="Data de Nascimento"
-                type="date"
-                value={formValues.dataNascimento}
-                onChange={(e) => handleChange("dataNascimento", e.target.value)}
-                onBlur={() => validateField("dataNascimento")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.dataNascimento?.message),
-                  notification: errors.dataNascimento?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="dataNascimento">
+                  Data de Nascimento
+                </FieldLabel>
+                <Input
+                  id="dataNascimento"
+                  type="date"
+                  value={formValues.dataNascimento}
+                  onChange={(e) =>
+                    handleChange("dataNascimento", e.target.value)
+                  }
+                  onBlur={() => validateField("dataNascimento")}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.dataNascimento?.message)}
+                />
+                {errors.dataNascimento?.message && (
+                  <FieldError>{errors.dataNascimento.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                label="CPF"
-                value={formValues.cpf}
-                onChange={(e) => handleChange("cpf", e.target.value)}
-                onBlur={() => validateField("cpf")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.cpf?.message),
-                  notification: errors.cpf?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="cpf">CPF</FieldLabel>
+                <Input
+                  id="cpf"
+                  value={formValues.cpf}
+                  onChange={(e) => handleChange("cpf", e.target.value)}
+                  onBlur={() => validateField("cpf")}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.cpf?.message)}
+                />
+                {errors.cpf?.message && (
+                  <FieldError>{errors.cpf.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                label="RG"
-                value={formValues.rg}
-                onChange={(e) => handleChange("rg", e.target.value)}
-                onBlur={() => validateField("rg")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.rg?.message),
-                  notification: errors.rg?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="rg">RG</FieldLabel>
+                <Input
+                  id="rg"
+                  value={formValues.rg}
+                  onChange={(e) => handleChange("rg", e.target.value)}
+                  onBlur={() => validateField("rg")}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.rg?.message)}
+                />
+                {errors.rg?.message && (
+                  <FieldError>{errors.rg.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                label="Telefone Celular"
-                value={formValues.telefoneCelular}
-                onChange={(e) =>
-                  handleChange("telefoneCelular", e.target.value)
-                }
-                onBlur={() => validateField("telefoneCelular")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.telefoneCelular?.message),
-                  notification: errors.telefoneCelular?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="telefoneCelular">
+                  Telefone Celular
+                </FieldLabel>
+                <Input
+                  id="telefoneCelular"
+                  value={formValues.telefoneCelular}
+                  onChange={(e) =>
+                    handleChange("telefoneCelular", e.target.value)
+                  }
+                  onBlur={() => validateField("telefoneCelular")}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.telefoneCelular?.message)}
+                />
+                {errors.telefoneCelular?.message && (
+                  <FieldError>{errors.telefoneCelular.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                label="Email"
-                type="email"
-                value={formValues.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                onBlur={() => validateField("email")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.email?.message),
-                  notification: errors.email?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formValues.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  onBlur={() => validateField("email")}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.email?.message)}
+                />
+                {errors.email?.message && (
+                  <FieldError>{errors.email.message}</FieldError>
+                )}
+              </Field>
             </div>
           </div>
 
@@ -359,104 +384,127 @@ const UserForm = () => {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <Input
-                disabled={isViewMode}
-                label="CEP"
-                value={formValues.endereco.cep}
-                onChange={(e) => {
-                  handleChange("endereco.cep", e.target.value);
-                  setCep(e.target.value);
-                }}
-                onBlur={() => validateField("endereco.cep")}
-                notification={{
-                  isError: Boolean(errors.endereco?.cep?.message),
-                  notification: errors.endereco?.cep?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="endereco_cep">CEP</FieldLabel>
+                <Input
+                  id="endereco_cep"
+                  disabled={isViewMode}
+                  value={formValues.endereco.cep}
+                  onChange={(e) => {
+                    handleChange("endereco.cep", e.target.value);
+                    setCep(e.target.value);
+                  }}
+                  onBlur={() => validateField("endereco.cep")}
+                  aria-invalid={Boolean(errors.endereco?.cep?.message)}
+                />
+                {errors.endereco?.cep?.message && (
+                  <FieldError>{errors.endereco.cep.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                disabled={isViewMode}
-                label="Estado"
-                value={formValues.endereco.estado}
-                onChange={(e) =>
-                  handleChange("endereco.estado", e.target.value)
-                }
-                onBlur={() => validateField("endereco.estado")}
-                notification={{
-                  isError: Boolean(errors.endereco?.estado?.message),
-                  notification: errors.endereco?.estado?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="endereco_estado">Estado</FieldLabel>
+                <Input
+                  id="endereco_estado"
+                  disabled={isViewMode}
+                  value={formValues.endereco.estado}
+                  onChange={(e) =>
+                    handleChange("endereco.estado", e.target.value)
+                  }
+                  onBlur={() => validateField("endereco.estado")}
+                  aria-invalid={Boolean(errors.endereco?.estado?.message)}
+                />
+                {errors.endereco?.estado?.message && (
+                  <FieldError>{errors.endereco.estado.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                disabled={isViewMode}
-                label="Cidade"
-                value={formValues.endereco.cidade}
-                onChange={(e) =>
-                  handleChange("endereco.cidade", e.target.value)
-                }
-                onBlur={() => validateField("endereco.cidade")}
-                notification={{
-                  isError: Boolean(errors.endereco?.cidade?.message),
-                  notification: errors.endereco?.cidade?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="endereco_cidade">Cidade</FieldLabel>
+                <Input
+                  id="endereco_cidade"
+                  disabled={isViewMode}
+                  value={formValues.endereco.cidade}
+                  onChange={(e) =>
+                    handleChange("endereco.cidade", e.target.value)
+                  }
+                  onBlur={() => validateField("endereco.cidade")}
+                  aria-invalid={Boolean(errors.endereco?.cidade?.message)}
+                />
+                {errors.endereco?.cidade?.message && (
+                  <FieldError>{errors.endereco.cidade.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                disabled={isViewMode}
-                label="Rua"
-                className="sm:col-span-2"
-                value={formValues.endereco.rua}
-                onChange={(e) => handleChange("endereco.rua", e.target.value)}
-                onBlur={() => validateField("endereco.rua")}
-                notification={{
-                  isError: Boolean(errors.endereco?.rua?.message),
-                  notification: errors.endereco?.rua?.message ?? "",
-                }}
-              />
+              <Field className="sm:col-span-2">
+                <FieldLabel htmlFor="endereco_rua">Rua</FieldLabel>
+                <Input
+                  id="endereco_rua"
+                  disabled={isViewMode}
+                  className="sm:col-span-2"
+                  value={formValues.endereco.rua}
+                  onChange={(e) => handleChange("endereco.rua", e.target.value)}
+                  onBlur={() => validateField("endereco.rua")}
+                  aria-invalid={Boolean(errors.endereco?.rua?.message)}
+                />
+                {errors.endereco?.rua?.message && (
+                  <FieldError>{errors.endereco.rua.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                disabled={isViewMode}
-                label="Número"
-                value={formValues.endereco.numero}
-                onChange={(e) =>
-                  handleChange("endereco.numero", e.target.value)
-                }
-                onBlur={() => validateField("endereco.numero")}
-                notification={{
-                  isError: Boolean(errors.endereco?.numero?.message),
-                  notification: errors.endereco?.numero?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="endereco_numero">Número</FieldLabel>
+                <Input
+                  id="endereco_numero"
+                  disabled={isViewMode}
+                  value={formValues.endereco.numero}
+                  onChange={(e) =>
+                    handleChange("endereco.numero", e.target.value)
+                  }
+                  onBlur={() => validateField("endereco.numero")}
+                  aria-invalid={Boolean(errors.endereco?.numero?.message)}
+                />
+                {errors.endereco?.numero?.message && (
+                  <FieldError>{errors.endereco.numero.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                disabled={isViewMode}
-                label="Bairro"
-                value={formValues.endereco.bairro}
-                onChange={(e) =>
-                  handleChange("endereco.bairro", e.target.value)
-                }
-                onBlur={() => validateField("endereco.bairro")}
-                notification={{
-                  isError: Boolean(errors.endereco?.bairro?.message),
-                  notification: errors.endereco?.bairro?.message ?? "",
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="endereco_bairro">Bairro</FieldLabel>
+                <Input
+                  id="endereco_bairro"
+                  disabled={isViewMode}
+                  value={formValues.endereco.bairro}
+                  onChange={(e) =>
+                    handleChange("endereco.bairro", e.target.value)
+                  }
+                  onBlur={() => validateField("endereco.bairro")}
+                  aria-invalid={Boolean(errors.endereco?.bairro?.message)}
+                />
+                {errors.endereco?.bairro?.message && (
+                  <FieldError>{errors.endereco.bairro.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                disabled={isViewMode}
-                label="Complemento"
-                className="sm:col-span-2"
-                value={formValues.endereco.complemento}
-                onChange={(e) =>
-                  handleChange("endereco.complemento", e.target.value)
-                }
-                onBlur={() => validateField("endereco.complemento")}
-                notification={{
-                  isError: Boolean(errors.endereco?.complemento?.message),
-                  notification: errors.endereco?.complemento?.message ?? "",
-                }}
-              />
+              <Field className="sm:col-span-2">
+                <FieldLabel htmlFor="endereco_complemento">
+                  Complemento
+                </FieldLabel>
+                <Input
+                  id="endereco_complemento"
+                  disabled={isViewMode}
+                  className="sm:col-span-2"
+                  value={formValues.endereco.complemento}
+                  onChange={(e) =>
+                    handleChange("endereco.complemento", e.target.value)
+                  }
+                  onBlur={() => validateField("endereco.complemento")}
+                  aria-invalid={Boolean(errors.endereco?.complemento?.message)}
+                />
+                {errors.endereco?.complemento?.message && (
+                  <FieldError>{errors.endereco.complemento.message}</FieldError>
+                )}
+              </Field>
             </div>
           </div>
 

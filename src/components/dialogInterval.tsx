@@ -8,11 +8,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "./button/button";
-import { Input } from "./input/input";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Field, FieldError, FieldLabel } from "./input/Field";
+import { Input } from "./input/Input";
 
 interface IntervalProps {
   onGenerate: (numbers: number[]) => void;
@@ -138,67 +139,74 @@ const DialogInterval = ({
         </DialogHeader>
 
         <div>
-          <Input
-            label="De:"
-            type="number"
-            name="de"
-            value={formValues.de}
-            min={1}
-            max={formValues.ate}
-            onChange={(e) => {
-              const value = toInt(e.target.value, 1);
-              handleChange("de", value);
-            }}
-            onBlur={async (e) => {
-              const raw = toInt(e.target.value, 1);
-              const value = clamp(raw, 1, formValues.ate);
+          <Field>
+            <FieldLabel htmlFor="de">De:</FieldLabel>
 
-              handleChange("de", value);
-
-              // garante consistência (se de > ate, ajusta ate também)
-              if (value > formValues.ate) {
-                handleChange("ate", value);
-              }
-
-              await validateField("de");
-              await validateField("ate");
-            }}
-            notification={{
-              isError: Boolean(errors.de?.message),
-              notification: errors.de?.message ?? "",
-            }}
-          />
-
-          <Input
-            label="Até:"
-            type="number"
-            name="ate"
-            value={formValues.ate}
-            min={formValues.de}
-            max={max}
-            onChange={(e) => {
-              const value = toInt(e.target.value, max);
-              handleChange("ate", value);
-            }}
-            onBlur={async (e) => {
-              const raw = toInt(e.target.value, max);
-              const value = clamp(raw, formValues.de, max);
-
-              handleChange("ate", value);
-
-              // garante consistência (se ate < de, ajusta de também)
-              if (value < formValues.de) {
+            <Input
+              id="de"
+              type="number"
+              name="de"
+              value={formValues.de}
+              min={1}
+              max={formValues.ate}
+              aria-invalid={Boolean(errors.de?.message)}
+              onChange={(e) => {
+                const value = toInt(e.target.value, 1);
                 handleChange("de", value);
-              }
+              }}
+              onBlur={async (e) => {
+                const raw = toInt(e.target.value, 1);
+                const value = clamp(raw, 1, formValues.ate);
 
-              await validateField("ate");
-              await validateField("de");
-            }}
-            notification={{
-              isError: Boolean(errors.ate?.message),
-              notification: errors.ate?.message ?? "",
-            }}
-          />
+                handleChange("de", value);
+
+                // garante consistência (se de > ate, ajusta ate também)
+                if (value > formValues.ate) {
+                  handleChange("ate", value);
+                }
+
+                await validateField("de");
+                await validateField("ate");
+              }}
+            />
+
+            {errors.de?.message && <FieldError>{errors.de.message}</FieldError>}
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="ate">Até:</FieldLabel>
+
+            <Input
+              id="ate"
+              type="number"
+              name="ate"
+              value={formValues.ate}
+              min={formValues.de}
+              max={max}
+              onChange={(e) => {
+                const value = toInt(e.target.value, max);
+                handleChange("ate", value);
+              }}
+              onBlur={async (e) => {
+                const raw = toInt(e.target.value, max);
+                const value = clamp(raw, formValues.de, max);
+
+                handleChange("ate", value);
+
+                // garante consistência (se ate < de, ajusta de também)
+                if (value < formValues.de) {
+                  handleChange("de", value);
+                }
+
+                await validateField("ate");
+                await validateField("de");
+              }}
+            />
+
+            {errors.ate?.message && (
+              <FieldError>{errors.ate.message}</FieldError>
+            )}
+          </Field>
         </div>
 
         <DialogFooter className="items-center">

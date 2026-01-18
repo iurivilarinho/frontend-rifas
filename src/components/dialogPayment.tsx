@@ -11,7 +11,7 @@ import { Button } from "./button/button";
 import { useState } from "react";
 import QRCodeGenerator from "./qrCodeGenerator";
 import { usePostReservation } from "@/lib/api/tanstackQuery/reservation";
-import { Pessoa } from "@/types/pessoa";
+import { User } from "@/types/user";
 import { Reservation } from "@/types/reserva";
 
 interface RandomProps {
@@ -40,7 +40,7 @@ const DialogPayment = ({
       return;
     }
 
-    const user = JSON.parse(userString) as Pessoa;
+    const user = JSON.parse(userString) as User;
 
     // Cria a lista de IDs das cotas selecionadas
     const quotasId = Array.from(quotesSelected).map(Number);

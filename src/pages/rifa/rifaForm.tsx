@@ -1,8 +1,8 @@
 import { Button } from "@/components/button/button";
 import DragAndDrop from "@/components/dragAndDrop/dragAndDrop";
 import DataInput from "@/components/input/dateInput";
-import { Input } from "@/components/input/input";
-import { Label } from "@/components/input/label";
+import { Input } from "@/components/input/Input";
+import { Label } from "@/components/input/Label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useGetRifaById,
@@ -18,6 +18,7 @@ import { z } from "zod";
 import Loading from "@/components/loading";
 import { useCustomDialogContext } from "@/components/dialog/useCustomDialogContext";
 import { BadgeCheck, Eye, Pencil, Plus } from "lucide-react";
+import { Field, FieldError, FieldLabel } from "@/components/input/Field";
 
 const FORM_TYPES = ["create", "edit", "view"] as const;
 type FormType = (typeof FORM_TYPES)[number];
@@ -71,7 +72,7 @@ const buildRifaFormData = (data: RifaFormData) => {
 
   formData.append(
     "form",
-    new Blob([JSON.stringify(props)], { type: "application/json" })
+    new Blob([JSON.stringify(props)], { type: "application/json" }),
   );
   return formData;
 };
@@ -219,16 +220,20 @@ const RifaForm = () => {
         <div className="rounded-xl border border-green-200 bg-white p-6">
           <form onSubmit={handleSubmit(submitForm)} className="space-y-6">
             <div>
-              <Input
-                className="my-3"
-                label="Título"
-                {...register("title")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.title),
-                  notification: errors.title?.message,
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="title">Título</FieldLabel>
+                <Input
+                  id="title"
+                  className="my-3"
+                  {...register("title")}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.title)}
+                />
+                {errors.title?.message && (
+                  <FieldError>{errors.title.message}</FieldError>
+                )}
+              </Field>
+
               <Textarea
                 placeholder="Descrição da rifa"
                 {...register("description")}
@@ -282,54 +287,72 @@ const RifaForm = () => {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                className="w-full"
-                label="Quantidade de Cotas"
-                type="number"
-                {...register("numberOfShares", { valueAsNumber: true })}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.numberOfShares),
-                  notification: errors.numberOfShares?.message,
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="numberOfShares">
+                  Quantidade de Cotas
+                </FieldLabel>
+                <Input
+                  id="numberOfShares"
+                  className="w-full"
+                  type="number"
+                  {...register("numberOfShares", { valueAsNumber: true })}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.numberOfShares)}
+                />
+                {errors.numberOfShares?.message && (
+                  <FieldError>{errors.numberOfShares.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                className="w-full"
-                label="Valor por cota"
-                {...register("quotaPrice", { valueAsNumber: true })}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.quotaPrice),
-                  notification: errors.quotaPrice?.message,
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="quotaPrice">Valor por cota</FieldLabel>
+                <Input
+                  id="quotaPrice"
+                  className="w-full"
+                  {...register("quotaPrice", { valueAsNumber: true })}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.quotaPrice)}
+                />
+                {errors.quotaPrice?.message && (
+                  <FieldError>{errors.quotaPrice.message}</FieldError>
+                )}
+              </Field>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                className="w-full"
-                label="Compra mínima de cotas por venda"
-                type="number"
-                {...register("compraMinCotas", { valueAsNumber: true })}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.compraMinCotas),
-                  notification: errors.compraMinCotas?.message,
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="compraMinCotas">
+                  Compra mínima de cotas por venda
+                </FieldLabel>
+                <Input
+                  id="compraMinCotas"
+                  className="w-full"
+                  type="number"
+                  {...register("compraMinCotas", { valueAsNumber: true })}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.compraMinCotas)}
+                />
+                {errors.compraMinCotas?.message && (
+                  <FieldError>{errors.compraMinCotas.message}</FieldError>
+                )}
+              </Field>
 
-              <Input
-                className="w-full"
-                label="Compra máxima de cotas por venda"
-                type="number"
-                {...register("compraMaxCotas", { valueAsNumber: true })}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.compraMaxCotas),
-                  notification: errors.compraMaxCotas?.message,
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="compraMaxCotas">
+                  Compra máxima de cotas por venda
+                </FieldLabel>
+                <Input
+                  id="compraMaxCotas"
+                  className="w-full"
+                  type="number"
+                  {...register("compraMaxCotas", { valueAsNumber: true })}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.compraMaxCotas)}
+                />
+                {errors.compraMaxCotas?.message && (
+                  <FieldError>{errors.compraMaxCotas.message}</FieldError>
+                )}
+              </Field>
             </div>
 
             <div className="border-t pt-6">

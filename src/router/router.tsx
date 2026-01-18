@@ -2,7 +2,6 @@ import BottomNavBar from "@/components/navBar";
 import Home from "@/pages/home";
 import Login from "@/pages/login/login";
 import UserForm from "@/pages/user/userForm";
-import { ListaPessoa } from "@/pages/user/pessoaLista";
 import Rifa from "@/pages/rifa/rifa";
 import RifaForm from "@/pages/rifa/rifaForm";
 import RifaList from "@/pages/rifa/rifaList";
@@ -12,6 +11,7 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
+import Painel from "@/pages/painel/painel";
 
 const AppRouter = () => {
   return (
@@ -21,7 +21,10 @@ const AppRouter = () => {
 
         <Route path="/login" element={<Login />} />
 
-        <Route path="/table" element={<ListaPessoa />} />
+        {/* Painel pós-login */}
+        <Route path="/painel" element={<Painel />} />
+
+        {/* <Route path="/table" element={<ListaPessoa />} /> */}
 
         {/* Pessoa: form sempre em /pessoa/form/:formType/:userId? */}
         <Route path="/pessoa/form/:formType/:userId?" element={<UserForm />} />
