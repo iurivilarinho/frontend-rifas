@@ -1,21 +1,37 @@
 import { Button } from "@/components/button/button";
 import { Input } from "@/components/input/input";
 import { usePostLogin } from "@/lib/api/tanstackQuery/login";
-import useValidation from "@/lib/hooks/useValidation";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  login: z.string().trim().min(1, "Insira seu login"),
+  password: z.string().min(1, "Insira sua senha"),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const { values, handleChange, validateField, validateForm, errors } =
-    useValidation(
-      {
-        login: (value) => (value ? null : "Insira seu login"),
-        password: (value) => (value ? null : "Insira sua senha"),
-      },
-      { login: "", password: "" }
-    );
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    trigger,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: "onBlur", // valida no blur; pode mudar para "onChange" se quiser
+    defaultValues: {
+      login: "",
+      password: "",
+    },
+  });
 
   const {
     mutate: authenticateUser,
@@ -30,29 +46,31 @@ const LoginForm = () => {
     setIsPasswordVisible((prev) => !prev);
   };
 
-  const submitForm = () => {
-    if (validateForm()) {
-      authenticateUser(values);
-    }
+  const onSubmit = (data: LoginFormValues) => {
+    authenticateUser(data);
   };
 
   useEffect(() => {
     if (isAuthenticationSuccess && userData) {
       localStorage.setItem("user", JSON.stringify(userData));
-      navigate("/rifa");
+      navigate("/");
     }
-  }, [isAuthenticationSuccess, userData]);
+  }, [isAuthenticationSuccess, userData, navigate]);
 
   if (isAuthenticationPending) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="w-16 h-16 border-4 border-t-transparent border-green-500 rounded-full animate-spin"></div>
+        <div className="w-16 h-16 border-4 border-t-transparent border-green-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex w-full max-w-lg flex-col gap-6 p-6 bg-white rounded-lg">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex w-full max-w-lg flex-col gap-6 p-6 bg-white rounded-lg"
+      noValidate
+    >
       <div className="flex w-full flex-col items-center gap-3">
         <div className="flex items-center gap-3">
           <h1 className="tracking-tigh text-2xl font-semibold text-foreground">
@@ -63,26 +81,37 @@ const LoginForm = () => {
           Digite seu login e senha para acessar o painel fiscal.
         </p>
       </div>
+
       <Input
         label="Login"
-        value={values.login}
-        onChange={(e) => handleChange("login", e.target.value)}
-        onBlur={() => validateField("login", values.login)}
+        {...register("login")}
+        // Exemplo de uso explícito do setValue (padrão de mercado: RHF controla o form)
+        onChange={(e) => {
+          setValue("login", e.target.value, { shouldDirty: true });
+        }}
+        onBlur={async () => {
+          await trigger("login");
+        }}
         notification={{
-          isError: Boolean(errors.login),
-          notification: errors.login ?? "",
+          isError: Boolean(errors.login?.message),
+          notification: errors.login?.message ?? "",
         }}
       />
+
       <div className="relative">
         <Input
           label="Senha"
           type={isPasswordVisible ? "text" : "password"}
-          value={values.password}
-          onChange={(e) => handleChange("password", e.target.value)}
-          onBlur={() => validateField("password", values.password)}
+          {...register("password")}
+          onChange={(e) => {
+            setValue("password", e.target.value, { shouldDirty: true });
+          }}
+          onBlur={async () => {
+            await trigger("password");
+          }}
           notification={{
-            isError: Boolean(errors.password),
-            notification: errors.password ?? "",
+            isError: Boolean(errors.password?.message),
+            notification: errors.password?.message ?? "",
           }}
         />
         <button
@@ -93,6 +122,7 @@ const LoginForm = () => {
           {isPasswordVisible ? <Eye /> : <EyeOff />}
         </button>
       </div>
+
       <div className="flex justify-end">
         <Link
           to="/recuperar-senha"
@@ -101,8 +131,11 @@ const LoginForm = () => {
           Esqueceu a senha?
         </Link>
       </div>
-      <Button onClick={submitForm}>Login</Button>
-    </div>
+
+      <Button type="submit" disabled={isSubmitting || isAuthenticationPending}>
+        Login
+      </Button>
+    </form>
   );
 };
 

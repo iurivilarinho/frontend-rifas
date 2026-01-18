@@ -43,9 +43,9 @@ const RifaPage = () => {
   useEffect(() => {
     if (dataRifa) {
       const soldNumbers: Set<string> = new Set();
-      (dataRifa as Rifa)?.quotas?.forEach((cota: Cota) => {
-        if (cota.sold) {
-          soldNumbers.add(String(cota.number));
+      (dataRifa as Rifa)?.quotas?.forEach((quota: Cota) => {
+        if (quota.reservationId) {
+          soldNumbers.add(String(quota.number));
         }
         setSoldButtons(soldNumbers);
       });

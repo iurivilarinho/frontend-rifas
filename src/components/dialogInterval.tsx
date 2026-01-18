@@ -9,14 +9,29 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "./button/button";
 import { Input } from "./input/input";
-import { useState, useEffect } from "react";
-import useValidation from "@/lib/hooks/useValidation";
+import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface IntervalProps {
   onGenerate: (numbers: number[]) => void;
   max: number;
   selectedNumbers: Set<string>;
 }
+
+type IntervalFormValues = {
+  de: number;
+  ate: number;
+};
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(value, max));
+
+const toInt = (raw: string, fallback: number) => {
+  const n = Number.parseInt(raw, 10);
+  return Number.isNaN(n) ? fallback : n;
+};
 
 const DialogInterval = ({
   max,
@@ -25,60 +40,93 @@ const DialogInterval = ({
 }: IntervalProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const {
-    values: formValues,
-    handleChange,
-    validateField,
-    validateForm,
-    errors,
-  } = useValidation(
-    {
-      de: (value) => {
-        if (!value && value !== 0) return "Campo obrigatório";
-        if (value < 0) return "Valor deve ser maior ou igual a 0";
-        if (value > formValues.ate)
-          return "Valor deve ser menor ou igual ao campo 'Até'";
-        return null;
-      },
-      ate: (value) => {
-        if (!value && value !== 0) return "Campo obrigatório";
-        if (value < 0) return "Valor deve ser maior ou igual a 0";
-        if (value < formValues.de)
-          return "Valor deve ser maior ou igual ao campo 'De'";
-        if (value > max) return `Valor deve ser menor ou igual a ${max}`;
-        return null;
-      },
-    },
-    {
-      de: 0,
-      ate: max,
-    }
-  );
-
-  const handleGenerateNumberInterval = () => {
-    if (validateForm()) {
-      const numbers: number[] = [];
-      for (let i = formValues.de; i <= formValues.ate; i++) {
-        if (!selectedNumbers.has(String(i))) {
-          numbers.push(i);
+  // schema depende de max
+  const schema = useMemo(() => {
+    return z
+      .object({
+        de: z
+          .number({ invalid_type_error: "Campo obrigatório" })
+          .min(1, "Valor deve ser maior ou igual a 1"),
+        ate: z
+          .number({ invalid_type_error: "Campo obrigatório" })
+          .min(1, "Valor deve ser maior ou igual a 1")
+          .max(max, `Valor deve ser menor ou igual a ${max}`),
+      })
+      .superRefine((data, ctx) => {
+        if (data.de > data.ate) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["de"],
+            message: "Valor deve ser menor ou igual ao campo 'Até'",
+          });
         }
-      }
-      onGenerate(numbers);
-      setIsOpen(false);
-    }
+        if (data.ate < data.de) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["ate"],
+            message: "Valor deve ser maior ou igual ao campo 'De'",
+          });
+        }
+      });
+  }, [max]);
+
+  const {
+    setValue,
+    reset,
+    watch,
+    trigger,
+    formState: { errors },
+  } = useForm<IntervalFormValues>({
+    resolver: zodResolver(schema),
+    mode: "onBlur",
+    defaultValues: { de: 1, ate: max },
+    shouldUnregister: false,
+  });
+
+  const formValues = watch();
+
+  const handleChange = (field: keyof IntervalFormValues, value: number) => {
+    setValue(field, value, { shouldDirty: true });
   };
 
+  const validateField = async (field: keyof IntervalFormValues) => {
+    await trigger(field);
+  };
+
+  const validateForm = async () => {
+    return await trigger();
+  };
+
+  const handleGenerateNumberInterval = async () => {
+    const ok = await validateForm();
+    if (!ok) return;
+
+    const numbers: number[] = [];
+    for (let i = formValues.de; i <= formValues.ate; i++) {
+      if (!selectedNumbers.has(String(i))) numbers.push(i);
+    }
+
+    onGenerate(numbers);
+    setIsOpen(false);
+  };
+
+  // atualiza valores quando max muda (equivalente ao seu handleChange no useEffect)
   useEffect(() => {
-    // Exemplo para setar valores iniciais, se necessário
-    handleChange("de", 0);
-    handleChange("ate", max);
-  }, [max]);
+    reset({ de: 1, ate: max }, { keepDirty: false, keepTouched: false });
+  }, [max, reset]);
+
+  const isConfirmDisabled =
+    formValues.de < 1 ||
+    formValues.ate < 1 ||
+    formValues.de > formValues.ate ||
+    formValues.ate > max;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="mb-4 w-32 h-16">Selecionar faixa</Button>
       </DialogTrigger>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -88,29 +136,36 @@ const DialogInterval = ({
             Informe sobre qual intervalo deseja selecionar.
           </DialogDescription>
         </DialogHeader>
+
         <div>
           <Input
             label="De:"
             type="number"
             name="de"
             value={formValues.de}
-            min={0}
+            min={1}
             max={formValues.ate}
             onChange={(e) => {
-              const value = parseInt(e.target.value, 10);
+              const value = toInt(e.target.value, 1);
               handleChange("de", value);
             }}
-            onBlur={(e) => {
-              const value = Math.max(
-                0,
-                Math.min(parseInt(e.target.value, 10), formValues.ate)
-              );
+            onBlur={async (e) => {
+              const raw = toInt(e.target.value, 1);
+              const value = clamp(raw, 1, formValues.ate);
+
               handleChange("de", value);
-              validateField("de", value);
+
+              // garante consistência (se de > ate, ajusta ate também)
+              if (value > formValues.ate) {
+                handleChange("ate", value);
+              }
+
+              await validateField("de");
+              await validateField("ate");
             }}
             notification={{
-              isError: Boolean(errors.de),
-              notification: errors.de ?? "",
+              isError: Boolean(errors.de?.message),
+              notification: errors.de?.message ?? "",
             }}
           />
 
@@ -122,31 +177,33 @@ const DialogInterval = ({
             min={formValues.de}
             max={max}
             onChange={(e) => {
-              const value = parseInt(e.target.value, 10);
+              const value = toInt(e.target.value, max);
               handleChange("ate", value);
             }}
-            onBlur={(e) => {
-              const value = Math.max(
-                formValues.de,
-                Math.min(parseInt(e.target.value, 10), max)
-              );
+            onBlur={async (e) => {
+              const raw = toInt(e.target.value, max);
+              const value = clamp(raw, formValues.de, max);
+
               handleChange("ate", value);
-              validateField("ate", value);
+
+              // garante consistência (se ate < de, ajusta de também)
+              if (value < formValues.de) {
+                handleChange("de", value);
+              }
+
+              await validateField("ate");
+              await validateField("de");
             }}
             notification={{
-              isError: Boolean(errors.ate),
-              notification: errors.ate ?? "",
+              isError: Boolean(errors.ate?.message),
+              notification: errors.ate?.message ?? "",
             }}
           />
         </div>
+
         <DialogFooter className="items-center">
           <Button
-            disabled={
-              !formValues.de ||
-              !formValues.ate ||
-              formValues.de <= 0 ||
-              formValues.ate <= 0
-            }
+            disabled={isConfirmDisabled}
             className="mb-4 w-36 h-16"
             onClick={handleGenerateNumberInterval}
           >
