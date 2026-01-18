@@ -1,9 +1,8 @@
 import BottomNavBar from "@/components/navBar";
-import Botoes from "@/pages/botoes";
 import Home from "@/pages/home";
 import Login from "@/pages/login/login";
-import { ListaPessoa } from "@/pages/pessoa/components/pessoaLista";
-import Pessoa from "@/pages/pessoa/pessoa";
+import UserForm from "@/pages/user/userForm";
+import { ListaPessoa } from "@/pages/user/pessoaLista";
 import Rifa from "@/pages/rifa/rifa";
 import RifaForm from "@/pages/rifa/rifaForm";
 import RifaList from "@/pages/rifa/rifaList";
@@ -18,17 +17,23 @@ const AppRouter = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/pessoa/:formType?/:userId?" element={<Pessoa />} />
+        <Route path="/" element={<Home />} />
+
         <Route path="/login" element={<Login />} />
+
         <Route path="/table" element={<ListaPessoa />} />
-        <Route path="/rifa/:rifaId?" element={<Rifa />} />
-        <Route path="/botoes" element={<Botoes />} />
-        <Route path="/home/:formType?/:rifaId?" element={<RifaForm />} />
-        <Route path="/:cpf?" element={<RifaList />} />
-        <Route path="/index" element={<Home />} />
+
+        {/* Pessoa: form sempre em /pessoa/form/:formType/:userId? */}
+        <Route path="/pessoa/form/:formType/:userId?" element={<UserForm />} />
+
+        {/* Rifa: detalhe separado do form */}
+        <Route path="/rifa/:rifaId" element={<Rifa />} />
+        <Route path="/rifa/form/:formType/:rifaId?" element={<RifaForm />} />
+
+        {/* Lista (recomendado: cpf via querystring /rifas?cpf=...) */}
+        <Route path="/rifas" element={<RifaList />} />
       </Routes>
 
-      {/* O useLocation precisa estar dentro do Router */}
       <NavBarWrapper />
     </Router>
   );
@@ -36,8 +41,7 @@ const AppRouter = () => {
 
 const NavBarWrapper = () => {
   const location = useLocation();
-  const noNavBarRoutes = ["/login", "/index"];
-
+  const noNavBarRoutes = ["/login"]; // "/index" não existe
   return !noNavBarRoutes.includes(location.pathname) ? <BottomNavBar /> : null;
 };
 

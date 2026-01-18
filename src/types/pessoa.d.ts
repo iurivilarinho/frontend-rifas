@@ -11,5 +11,4 @@ export interface Pessoa {
   telefoneResidencial?: string;
   email: string;
   endereco: Endereco;
-  informacaoSeguranca: InformacaoSeguranca;
 }

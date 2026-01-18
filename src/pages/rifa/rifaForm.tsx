@@ -11,15 +11,20 @@ import {
 } from "@/lib/api/tanstackQuery/rifa";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Switch } from "@/components/ui/switch";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import Loading from "@/components/loading";
 import { useCustomDialogContext } from "@/components/dialog/useCustomDialogContext";
+import { BadgeCheck, Eye, Pencil, Plus } from "lucide-react";
 
-// Definindo o esquema de validação com Zod
-// Esquema de validação com Zod
+const FORM_TYPES = ["create", "edit", "view"] as const;
+type FormType = (typeof FORM_TYPES)[number];
+
+const isFormType = (v: unknown): v is FormType =>
+  typeof v === "string" && (FORM_TYPES as readonly string[]).includes(v);
+
 const rifaFormSchema = z.object({
   title: z.string().min(1, "O título é obrigatório"),
   description: z.string().min(1, "A descrição é obrigatória"),
@@ -35,26 +40,76 @@ const rifaFormSchema = z.object({
   }),
 });
 
-// Definindo os tipos com base no esquema
 type RifaFormData = z.infer<typeof rifaFormSchema>;
+
+const convertDocumentToFile = (document: any): File => {
+  const byteString = atob(document.documento);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+  const blob = new Blob([ab], { type: document.contentType });
+  return new File([blob], document.nome, { type: document.contentType });
+};
+
+const buildRifaFormData = (data: RifaFormData) => {
+  const formData = new FormData();
+  const { images, ...props } = data;
+
+  if (images) {
+    if (Array.isArray(images)) {
+      images.forEach((file) => {
+        if (file?.documento)
+          formData.append("files", convertDocumentToFile(file));
+        else formData.append("files", file);
+      });
+    } else {
+      if ((images as any)?.documento)
+        formData.append("file", convertDocumentToFile(images));
+      else formData.append("file", images);
+    }
+  }
+
+  formData.append(
+    "form",
+    new Blob([JSON.stringify(props)], { type: "application/json" })
+  );
+  return formData;
+};
 
 const RifaForm = () => {
   const navigate = useNavigate();
-  const { formType, rifaId } = useParams();
-  const [isViewMode, setIsViewMode] = useState(false);
+  const { setCustomDialog } = useCustomDialogContext();
+  const params = useParams();
+  const formTypeParam = params.formType;
+  const rifaId = params.rifaId;
 
-  // Hooks para requisições de API
+  const formType: FormType = isFormType(formTypeParam)
+    ? formTypeParam
+    : "create";
+  const isViewMode = formType === "view";
+
+  const pageMeta = useMemo(() => {
+    if (formType === "edit") return { title: "Editar Rifa", icon: Pencil };
+    if (formType === "view") return { title: "Visualizar Rifa", icon: Eye };
+    return { title: "Cadastrar Rifa", icon: Plus };
+  }, [formType]);
+
+  const needsId = formType === "edit" || formType === "view";
+  const shouldFetch = needsId && Boolean(rifaId);
+
   const {
     data: rifaData,
     isLoading: isLoadingGet,
     error: errorGet,
-  } = useGetRifaById(rifaId ?? "");
+  } = useGetRifaById(shouldFetch ? (rifaId as string) : "");
+
   const {
     mutate: postRifa,
     isPending,
     isSuccess: isSuccessPost,
     error: errorPost,
   } = usePostRifa();
+
   const {
     mutate: putRifa,
     isPending: isPendingPut,
@@ -70,101 +125,38 @@ const RifaForm = () => {
     reset,
   } = useForm<RifaFormData>({
     resolver: zodResolver(rifaFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      numberOfShares: 0,
+      quotaPrice: 0,
+      compraMinCotas: 0,
+      compraMaxCotas: 0,
+      descriptionAward: "",
+      images: [],
+    },
   });
 
   const [dateRifa, setDateRifa] = useState(false);
   const [completedRifa, setCompletedRifa] = useState(true);
-  const { setCustomDialog } = useCustomDialogContext();
 
   const handleDateRifa = () => {
-    // Se ainda não estiver ativado
-    setDateRifa(!dateRifa); // Liga o switch de "Informar data de sorteio"
-    setCompletedRifa(!completedRifa); // Desliga o outro switch
+    setDateRifa(true);
+    setCompletedRifa(false);
   };
 
   const handleCompletedRifa = () => {
-    // Se ainda não estiver ativado
-    setCompletedRifa(!completedRifa); // Liga o switch de "Sortear após realizar as vendas"
-    setDateRifa(!dateRifa); // Desliga o outro switch
-  };
-  // Controla a submissão do formulário
-  const submitForm = (data: RifaFormData) => {
-    const formData = new FormData();
-    const { images, ...props } = data;
-
-    // Função para converter base64 em arquivo (para arquivos vindos do backend)
-    const convertDocumentToFile = (document: any): File => {
-      const byteString = atob(document.documento); // Decodifica o Base64
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-
-      const blob = new Blob([ab], { type: document.contentType });
-      return new File([blob], document.nome, { type: document.contentType });
-    };
-
-    if (images) {
-      if (Array.isArray(images)) {
-        images.forEach((file) => {
-          // Se for um arquivo vindo do backend (tem 'documento'), converte
-          if (file.documento) {
-            formData.append("files", convertDocumentToFile(file));
-          } else {
-            // Se for um arquivo novo, apenas adiciona
-            formData.append("files", file);
-          }
-        });
-      } else {
-        if (images.documento) {
-          formData.append("file", convertDocumentToFile(images));
-        } else {
-          formData.append("file", images);
-        }
-      }
-    }
-
-    // Serializa o restante do formulário como JSON e adiciona ao FormData
-    const blobJson = new Blob([JSON.stringify(props)], {
-      type: "application/json",
-    });
-    formData.append("form", blobJson);
-
-    // Decide entre POST ou PUT com base no formType
-    formType === "editar"
-      ? putRifa({ rifa: formData, id: rifaId ?? "" })
-      : postRifa(formData);
+    setCompletedRifa(true);
+    setDateRifa(false);
   };
 
-  // Carregar dados da rifa existente
   useEffect(() => {
-    if (rifaData) {
-      reset(rifaData);
-    }
-  }, [rifaData]);
+    if (rifaData) reset(rifaData);
+  }, [rifaData, reset]);
 
   useEffect(() => {
-    switch (formType) {
-      case "cadastro":
-        break;
-      case "editar":
-        break;
-      case "visualizar":
-        setIsViewMode(true);
-        break;
-      default:
-        break;
-    }
-  }, [formType]);
-
-  // Tratamento de erro e sucesso
-  useEffect(() => {
-    if (isSuccessPut || isSuccessPost) {
-      navigate("/"); // Redireciona após o sucesso
-    }
-  }, [isSuccessPut, isSuccessPost]);
+    if (isSuccessPut || isSuccessPost) navigate("/");
+  }, [isSuccessPut, isSuccessPost, navigate]);
 
   useEffect(() => {
     if (errorPost || errorPut || errorGet) {
@@ -180,164 +172,211 @@ const RifaForm = () => {
         closeHandler: () => setCustomDialog({}),
       });
     }
-  }, [errorPost, errorPut, errorGet]);
+  }, [errorPost, errorPut, errorGet, setCustomDialog]);
 
-  if (isPending || isPendingPut || isLoadingGet) {
-    return <Loading />;
-  }
+  const submitForm = (data: RifaFormData) => {
+    const formData = buildRifaFormData(data);
+
+    if (formType === "edit") {
+      putRifa({ rifa: formData, id: rifaId ?? "" });
+      return;
+    }
+
+    postRifa(formData);
+  };
+
+  if (isPending || isPendingPut || isLoadingGet) return <Loading />;
+
+  const Icon = pageMeta.icon;
 
   return (
-    <div className="bg-black/40 flex justify-center">
-      <div className="w-full lg:w-2/3 bg-white p-3 ">
-        <h1 className="text-2xl font-semibold pb-4 border-b-2">
-          Detalhes da Rifa
-        </h1>
-        <form onSubmit={handleSubmit(submitForm)}>
-          <div className="">
-            <Input
-              className="my-3"
-              label="Título"
-              {...register("title")}
-              disabled={isViewMode}
-              notification={{
-                isError: Boolean(errors.title),
-                notification: errors.title?.message,
-              }}
-            />
-            <Textarea
-              placeholder="Descrição da rifa"
-              {...register("description")}
-              disabled={isViewMode}
-              notification={{
-                isError: Boolean(errors.description),
-                notification: errors.description?.message,
-              }}
-            />
-          </div>
-          <div className="gap-3 p-3">
-            <p className="mb-6">Oque você deseja?</p>
-            <div className="flex flex-col">
-              <Label>Informar data de sorteio</Label>
-              <Switch
-                className="mx-3 my-3"
-                checked={completedRifa}
-                onCheckedChange={handleDateRifa}
-              />
-              <div className="flex flex-col w-full sm:flex-row lg:flex-row ">
-                {!dateRifa && (
-                  <div className="relative h-20 w-full my-2 max-w-28 sm:h-0 sm:mx-10  ">
-                    <DataInput
-                      label="Data de sorteio"
-                      className="absolute  sm:top-[-83px] left-0 z-50  sm:ml-80"
-                    />
-                  </div>
-                )}
+    <div className="min-h-screen bg-green-50 px-4 py-8">
+      <div className="mx-auto w-full max-w-4xl">
+        <div className="mb-6 rounded-xl border border-green-200 bg-white p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full border border-green-200 bg-green-50 p-2">
+                <Icon className="h-5 w-5 text-green-700" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  {pageMeta.title}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Preencha os detalhes e publique uma campanha de sorteio
+                  beneficente.
+                </p>
               </div>
             </div>
-            <div className="flex flex-col">
-              <Label>Sortear após realizar as vendas</Label>
-              <Switch
-                className="mx-3 my-3"
-                checked={dateRifa}
-                onCheckedChange={handleCompletedRifa}
+
+            <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
+              <BadgeCheck className="h-4 w-4 text-green-700" />
+              <span>Transparência e organização</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-green-200 bg-white p-6">
+          <form onSubmit={handleSubmit(submitForm)} className="space-y-6">
+            <div>
+              <Input
+                className="my-3"
+                label="Título"
+                {...register("title")}
+                disabled={isViewMode}
+                notification={{
+                  isError: Boolean(errors.title),
+                  notification: errors.title?.message,
+                }}
+              />
+              <Textarea
+                placeholder="Descrição da rifa"
+                {...register("description")}
+                disabled={isViewMode}
+                notification={{
+                  isError: Boolean(errors.description),
+                  notification: errors.description?.message,
+                }}
               />
             </div>
-          </div>
 
-          <div className="flex justify-between my-5">
-            <Input
-              className="w-full mr-5"
-              label="Quantidade de Cotas"
-              type="number"
-              {...register("numberOfShares", { valueAsNumber: true })}
-              disabled={isViewMode}
-              notification={{
-                isError: Boolean(errors.numberOfShares),
-                notification: errors.numberOfShares?.message,
-              }}
-            />
+            <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+              <p className="mb-4 font-medium text-gray-900">
+                Agendamento do sorteio
+              </p>
 
-            <Input
-              className="w-full ml-5"
-              label="Valor por cota"
-              //type="number"
-              {...register("quotaPrice", { valueAsNumber: true })}
-              disabled={isViewMode}
-              notification={{
-                isError: Boolean(errors.quotaPrice),
-                notification: errors.quotaPrice?.message,
-              }}
-            />
-          </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-lg border bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Informar data de sorteio</Label>
+                    <Switch
+                      className="ml-3"
+                      checked={dateRifa}
+                      onCheckedChange={handleDateRifa}
+                      disabled={isViewMode}
+                    />
+                  </div>
 
-          <div className="flex justify-between my-5">
-            <Input
-              className="w-full mr-5"
-              label="Compra mínima de cotas por venda"
-              type="number"
-              {...register("compraMinCotas", { valueAsNumber: true })}
-              disabled={isViewMode}
-              notification={{
-                isError: Boolean(errors.compraMinCotas),
-                notification: errors.compraMinCotas?.message,
-              }}
-            />
+                  {!completedRifa && (
+                    <div className="mt-4">
+                      <DataInput label="Data de sorteio" />
+                    </div>
+                  )}
+                </div>
 
-            <Input
-              className="w-full ml-5"
-              label="Compra máxima de cotas por venda"
-              type="number"
-              {...register("compraMaxCotas", { valueAsNumber: true })}
-              disabled={isViewMode}
-              notification={{
-                isError: Boolean(errors.compraMaxCotas),
-                notification: errors.compraMaxCotas?.message,
-              }}
-            />
-          </div>
-
-          <h1 className="text-2xl font-semibold pb-4 border-b-2">
-            Detalhes do prêmio
-          </h1>
-          <div>
-            <Textarea
-              className="my-3"
-              label="Descrição da premiação"
-              placeholder="Descrição da premiação"
-              {...register("descriptionAward")}
-              disabled={isViewMode}
-              notification={{
-                isError: Boolean(errors.descriptionAward),
-                notification: errors.descriptionAward?.message,
-              }}
-            />
-            <DragAndDrop
-              initialFiles={rifaData?.images} // Exibe as imagens já existentes
-              onAddFile={(files) =>
-                setValue("images", files, { shouldValidate: true })
-              }
-              label="Imagens do Prêmio"
-              acceptedFileTypes={{
-                ".jpg": ["image/jpeg"],
-                ".jpeg": ["image/jpeg"],
-                ".png": ["image/png"],
-              }}
-              notification={{
-                isError: Boolean(errors.images),
-                notification: String(errors.images?.message ?? ""),
-              }}
-              //disabled={isViewMode}
-            />
-          </div>
-
-          {!isViewMode && (
-            <div className="flex justify-center my-5">
-              <Button type="submit">
-                {formType === "editar" ? "Editar Rifa" : "Cadastrar Rifa"}
-              </Button>
+                <div className="rounded-lg border bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Sortear após realizar as vendas</Label>
+                    <Switch
+                      className="ml-3"
+                      checked={completedRifa}
+                      onCheckedChange={handleCompletedRifa}
+                      disabled={isViewMode}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-gray-600">
+                    O sorteio é realizado quando a campanha atingir o objetivo.
+                  </p>
+                </div>
+              </div>
             </div>
-          )}
-        </form>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                className="w-full"
+                label="Quantidade de Cotas"
+                type="number"
+                {...register("numberOfShares", { valueAsNumber: true })}
+                disabled={isViewMode}
+                notification={{
+                  isError: Boolean(errors.numberOfShares),
+                  notification: errors.numberOfShares?.message,
+                }}
+              />
+
+              <Input
+                className="w-full"
+                label="Valor por cota"
+                {...register("quotaPrice", { valueAsNumber: true })}
+                disabled={isViewMode}
+                notification={{
+                  isError: Boolean(errors.quotaPrice),
+                  notification: errors.quotaPrice?.message,
+                }}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                className="w-full"
+                label="Compra mínima de cotas por venda"
+                type="number"
+                {...register("compraMinCotas", { valueAsNumber: true })}
+                disabled={isViewMode}
+                notification={{
+                  isError: Boolean(errors.compraMinCotas),
+                  notification: errors.compraMinCotas?.message,
+                }}
+              />
+
+              <Input
+                className="w-full"
+                label="Compra máxima de cotas por venda"
+                type="number"
+                {...register("compraMaxCotas", { valueAsNumber: true })}
+                disabled={isViewMode}
+                notification={{
+                  isError: Boolean(errors.compraMaxCotas),
+                  notification: errors.compraMaxCotas?.message,
+                }}
+              />
+            </div>
+
+            <div className="border-t pt-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">
+                Detalhes do prêmio
+              </h2>
+
+              <Textarea
+                className="my-3"
+                label="Descrição da premiação"
+                placeholder="Descrição da premiação"
+                {...register("descriptionAward")}
+                disabled={isViewMode}
+                notification={{
+                  isError: Boolean(errors.descriptionAward),
+                  notification: errors.descriptionAward?.message,
+                }}
+              />
+
+              <DragAndDrop
+                initialFiles={rifaData?.images}
+                onAddFile={(files) =>
+                  setValue("images", files, { shouldValidate: true })
+                }
+                label="Imagens do Prêmio"
+                acceptedFileTypes={{
+                  ".jpg": ["image/jpeg"],
+                  ".jpeg": ["image/jpeg"],
+                  ".png": ["image/png"],
+                }}
+                notification={{
+                  isError: Boolean(errors.images),
+                  notification: String(errors.images?.message ?? ""),
+                }}
+                //disabled={isViewMode}
+              />
+            </div>
+
+            {!isViewMode && (
+              <div className="flex justify-end">
+                <Button type="submit">
+                  {formType === "edit" ? "Editar Rifa" : "Cadastrar Rifa"}
+                </Button>
+              </div>
+            )}
+          </form>
+        </div>
       </div>
     </div>
   );

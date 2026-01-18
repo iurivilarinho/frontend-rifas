@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import UserForm from "@/pages/usuario/usuarioForm";
+import BuyerForm from "@/pages/buyer/buyerForm";
 import { UserFormType, userFormSchema } from "@/types/usuario";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Step, StepLabel, Stepper } from "@mui/material";
@@ -49,7 +49,7 @@ const MultiStepForm = ({
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <UserForm />;
+        return <BuyerForm />;
       case 1:
         return (
           <PaymentCard

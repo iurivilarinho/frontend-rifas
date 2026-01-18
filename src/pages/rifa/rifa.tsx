@@ -22,7 +22,7 @@ import { useGetRifaById } from "@/lib/api/tanstackQuery/rifa";
 import { Rifa } from "@/types/rifa";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import BarraPorgresso from "../pessoa/components/barraProgresso";
+import BarraPorgresso from "../../components/barraProgresso";
 
 const RifaPage = () => {
   const { rifaId } = useParams();

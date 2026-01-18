@@ -13,11 +13,11 @@ import { useEffect, useState } from "react";
 
 import { Pagination } from "@/components/ui/pagination";
 
+import { Button } from "@/components/button/button";
+import { useCustomDialogContext } from "@/components/dialog/useCustomDialogContext";
 import { useGetPessoa } from "@/lib/api/tanstackQuery/pessoa";
 import { Pessoa } from "@/types/pessoa";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/button/button";
-import { useCustomDialogContext } from "@/components/dialog/useCustomDialogContext";
 
 export function ListaPessoa() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,16 +30,15 @@ export function ListaPessoa() {
   const navigate = useNavigate();
 
   const handleButtonClickVisualize = (pessoa: Pessoa) => {
-    navigate(`/pessoa/visualizar/${pessoa.id}`)
+    navigate(`/pessoa/visualizar/${pessoa.id}`);
   };
 
-
   const handleButtonClickUpdate = (pessoa: Pessoa) => {
-    navigate(`/pessoa/editar/${pessoa.id}`)
+    navigate(`/pessoa/editar/${pessoa.id}`);
   };
 
   const handleButtonClickInsert = () => {
-    navigate("/pessoa/")
+    navigate("/pessoa/");
   };
 
   useEffect(() => {
@@ -49,27 +48,26 @@ export function ListaPessoa() {
         title: "Erro",
         type: "error",
         closeHandler: () => setCustomDialog({}),
-      })
+      });
     }
-  }, [error])
+  }, [error]);
 
   // Paginação dos dados
   const totalPages = Math.ceil(data?.length / itemsPerPage);
   const startIndex = Math.max(currentPage - 1, 1) * itemsPerPage;
   const paginatedData = data?.slice(startIndex, startIndex + itemsPerPage);
 
-
-
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">
-      <div className="w-16 h-16 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
-
-    </div>
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-16 h-16 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+      </div>
+    );
     // Exibe uma mensagem de carregamento
   }
 
   if (!data || data.length === 0) {
-    return <div>Nenhuma pessoa encontrada.</div> // Exibe uma mensagem caso não haja dados
+    return <div>Nenhuma pessoa encontrada.</div>; // Exibe uma mensagem caso não haja dados
   }
 
   return (
@@ -84,10 +82,12 @@ export function ListaPessoa() {
               <TableHead>Telefone</TableHead>
               <TableHead className="">Data Nascimento</TableHead>
               <TableHead>Placa Veiculo</TableHead>
-              <div className="flex items-center justify-center h-10"> <Button onClick={handleButtonClickInsert} size={"sm"}>
-                Adiconar
-              </Button></div>
-
+              <div className="flex items-center justify-center h-10">
+                {" "}
+                <Button onClick={handleButtonClickInsert} size={"sm"}>
+                  Adiconar
+                </Button>
+              </div>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,15 +97,10 @@ export function ListaPessoa() {
                 onClickVisualize={() => handleButtonClickVisualize(pessoa)}
                 onClickUpdate={() => handleButtonClickUpdate(pessoa)}
               >
-                <TableCell className="font-medium">
-                  {pessoa.nome}
-                </TableCell>
+                <TableCell className="font-medium">{pessoa.nome}</TableCell>
                 <TableCell>{pessoa.email}</TableCell>
                 <TableCell>{pessoa.telefoneCelular}</TableCell>
                 <TableCell className="">{pessoa.dataNascimento}</TableCell>
-                <TableCell>
-                  {pessoa.informacaoSeguranca?.placaVeiculo || "N/A"}
-                </TableCell>
               </TableRowWihtButton>
             ))}
           </TableBody>

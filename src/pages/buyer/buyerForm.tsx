@@ -9,7 +9,7 @@ import {
 import { UserFormType } from "@/types/usuario";
 import { useFormContext } from "react-hook-form";
 
-const UserForm = () => {
+const BuyerForm = () => {
   const {
     register,
     formState: { errors },
@@ -61,4 +61,4 @@ const UserForm = () => {
   );
 };
 
-export default UserForm;
+export default BuyerForm;
