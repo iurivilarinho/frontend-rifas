@@ -20,12 +20,15 @@ import {
   BadgeCheck,
 } from "lucide-react";
 import logo from "@/img/logo.png";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-white">
@@ -162,7 +165,12 @@ const Home = () => {
               <span>Funcionalidades</span>
             </button>
 
-            <Button variant="outline" onClick={() => scrollTo("login")}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                navigate("/login");
+              }}
+            >
               <UserRoundCheck className="mr-2 h-4 w-4" />
               Login
             </Button>
@@ -438,6 +446,9 @@ const Home = () => {
               <Button
                 variant="outline"
                 className="h-12 border-white text-white hover:bg-white/10"
+                onClick={() => {
+                  navigate("/login");
+                }}
               >
                 <UserRoundCheck className="mr-2 h-4 w-4" />
                 Login
