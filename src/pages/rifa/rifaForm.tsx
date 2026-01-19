@@ -34,8 +34,8 @@ const rifaFormSchema = z.object({
     .number()
     .positive("A quantidade de cotas deve ser positiva"),
   quotaPrice: z.number().positive("O valor por cota deve ser positivo"),
-  compraMinCotas: z.number().positive("A compra mínima deve ser positiva"),
-  compraMaxCotas: z.number().positive("A compra máxima deve ser positiva"),
+  minPurchaseShares: z.number().positive("A compra mínima deve ser positiva"),
+  maxPurchaseShares: z.number().positive("A compra máxima deve ser positiva"),
   descriptionAward: z.string().min(1, "A descrição da premiação é obrigatória"),
 
   // ✅ novo: campo obrigatório no request
@@ -149,8 +149,8 @@ const RifaForm = () => {
       description: "",
       numberOfShares: 0,
       quotaPrice: 0,
-      compraMinCotas: 0,
-      compraMaxCotas: 0,
+      minPurchaseShares: 0,
+      maxPurchaseShares: 0,
       descriptionAward: "",
       showQuotas: true, // ✅ default (ajuste conforme regra do produto)
       cover: [],
@@ -375,12 +375,12 @@ const RifaForm = () => {
                   id="compraMinCotas"
                   className="w-full"
                   type="number"
-                  {...register("compraMinCotas", { valueAsNumber: true })}
+                  {...register("minPurchaseShares", { valueAsNumber: true })}
                   disabled={isViewMode}
-                  aria-invalid={Boolean(errors.compraMinCotas)}
+                  aria-invalid={Boolean(errors.minPurchaseShares)}
                 />
-                {errors.compraMinCotas?.message && (
-                  <FieldError>{errors.compraMinCotas.message}</FieldError>
+                {errors.minPurchaseShares?.message && (
+                  <FieldError>{errors.minPurchaseShares.message}</FieldError>
                 )}
               </Field>
 
@@ -392,12 +392,12 @@ const RifaForm = () => {
                   id="compraMaxCotas"
                   className="w-full"
                   type="number"
-                  {...register("compraMaxCotas", { valueAsNumber: true })}
+                  {...register("maxPurchaseShares", { valueAsNumber: true })}
                   disabled={isViewMode}
-                  aria-invalid={Boolean(errors.compraMaxCotas)}
+                  aria-invalid={Boolean(errors.maxPurchaseShares)}
                 />
-                {errors.compraMaxCotas?.message && (
-                  <FieldError>{errors.compraMaxCotas.message}</FieldError>
+                {errors.maxPurchaseShares?.message && (
+                  <FieldError>{errors.maxPurchaseShares.message}</FieldError>
                 )}
               </Field>
             </div>
