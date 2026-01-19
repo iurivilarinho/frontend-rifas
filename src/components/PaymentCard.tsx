@@ -11,11 +11,11 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { usePostReservation } from "@/lib/api/tanstackQuery/reservation";
 import { Reservation } from "@/types/reserva";
 import { Button } from "./button/button";
-import { UserFormType } from "@/types/usuario";
 import { PagSeguroOrder } from "@/types/pagSeguroOrder";
 import { onlyDigits } from "@/utils/formatters";
 import { Field } from "./input/Field";
 import { Input } from "./input/Input";
+import { UserFormType } from "@/pages/buyer/buyerForm";
 
 interface PaymentCardProps {
   totalPrice: number;

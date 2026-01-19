@@ -1,10 +1,12 @@
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import BuyerForm from "@/pages/buyer/buyerForm";
-import { UserFormType, userFormSchema } from "@/types/usuario";
+import BuyerForm, {
+  userFormSchema,
+  UserFormType,
+} from "@/pages/buyer/buyerForm";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Step, StepLabel, Stepper } from "@mui/material";
 import { useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Button } from "./button/button";
 import PaymentCard from "./PaymentCard";
 
@@ -30,17 +32,15 @@ const MultiStepForm = ({
 
   const methods = useForm<UserFormType>({
     resolver: zodResolver(userFormSchema),
+    defaultValues: {
+      fullName: "",
+    },
   });
 
   const [userData, setUserData] = useState<UserFormType | null>(null);
 
-  const handleNext = async () => {
-    if (activeStep === 0) {
-      const isValid = await methods.trigger();
-      if (!isValid) return;
-      const data = methods.watch();
-      setUserData(data);
-    }
+  const handleNext = (data: UserFormType) => {
+    setUserData(data);
     setActiveStep((prev) => prev + 1);
   };
 
@@ -49,7 +49,7 @@ const MultiStepForm = ({
   const getStepContent = (step: number) => {
     switch (step) {
       case 0:
-        return <BuyerForm />;
+        return <BuyerForm form={methods} />;
       case 1:
         return (
           <PaymentCard
@@ -77,34 +77,32 @@ const MultiStepForm = ({
           </Button>
         </DialogTrigger>
         <DialogContent className="w-full">
-          <FormProvider {...methods}>
-            <Stepper activeStep={activeStep}>
-              {steps.map((label, index) => (
-                <Step key={index}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
-              ))}
-            </Stepper>
+          <Stepper activeStep={activeStep}>
+            {steps.map((label, index) => (
+              <Step key={index}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
 
-            <div>{getStepContent(activeStep)}</div>
+          <div>{getStepContent(activeStep)}</div>
 
-            <div className="flex justify-between">
-              <Button disabled={activeStep === 0} onClick={handleBack}>
-                Voltar
-              </Button>
-              <Button
-                disabled={methods.getValues != null ? false : true}
-                onClick={
-                  activeStep === steps.length - 1
-                    ? () => setIsOpen(false)
-                    : handleNext
-                }
-                className={activeStep === steps.length - 1 ? " hidden" : ""}
-              >
-                {"Proximo"}
-              </Button>
-            </div>
-          </FormProvider>
+          <div className="flex justify-between">
+            <Button disabled={activeStep === 0} onClick={handleBack}>
+              Voltar
+            </Button>
+            <Button
+              disabled={methods.getValues != null ? false : true}
+              onClick={
+                activeStep === steps.length - 1
+                  ? () => setIsOpen(false)
+                  : methods.handleSubmit(handleNext)
+              }
+              className={activeStep === steps.length - 1 ? " hidden" : ""}
+            >
+              {"Proximo"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

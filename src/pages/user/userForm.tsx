@@ -39,7 +39,7 @@ const enderecoSchema = z.object({
   rua: z.string().trim().min(1, "Rua é obrigatória"),
   numero: z.string().trim().min(1, "Número é obrigatório"),
   bairro: z.string().trim().min(1, "Bairro é obrigatório"),
-  complemento: z.string().optional().default(""),
+  complemento: z.string().optional(),
 });
 
 const usuarioSchema = z.object({
@@ -48,11 +48,7 @@ const usuarioSchema = z.object({
   cpf: z.string().trim().min(1, "CPF é obrigatório"),
   rg: z.string().trim().min(1, "RG é obrigatório"),
   telefoneCelular: z.string().trim().min(1, "Telefone celular é obrigatório"),
-  email: z
-    .string()
-    .trim()
-    .min(1, "Email é obrigatório")
-    .email("Email inválido"),
+  email: z.email("Email inválido"),
   endereco: enderecoSchema,
 });
 

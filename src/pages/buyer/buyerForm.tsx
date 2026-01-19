@@ -1,5 +1,5 @@
-import { Input } from "@/components/input/Input";
 import { Field, FieldError, FieldLabel } from "@/components/input/Field";
+import { Input } from "@/components/input/Input";
 import {
   Card,
   CardContent,
@@ -7,14 +7,32 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { UserFormType } from "@/types/usuario";
-import { useFormContext } from "react-hook-form";
+import { isValidCPF } from "@/utils/validations";
+import { UseFormReturn } from "react-hook-form";
+import z from "zod";
 
-const BuyerForm = () => {
+// Schema de validação usando Zod
+export const userFormSchema = z.object({
+  fullName: z.string().min(1, { error: "O nome completo é obrigatório!" }),
+  email: z.email("Formato de email inválido!"),
+  cpf: z.string().refine(isValidCPF, {
+    message: "CPF inválido!",
+  }),
+  numberPhone: z.string().min(1, "O número de celular é obrigatório!"),
+});
+
+// Tipo inferido do schema de validação
+export type UserFormType = z.infer<typeof userFormSchema>;
+
+interface BuyerFormProps {
+  form: UseFormReturn<UserFormType>;
+}
+
+const BuyerForm = ({ form }: BuyerFormProps) => {
   const {
     register,
     formState: { errors },
-  } = useFormContext<UserFormType>();
+  } = form;
 
   return (
     <Card>
