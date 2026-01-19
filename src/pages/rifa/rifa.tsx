@@ -23,19 +23,20 @@ import { Rifa } from "@/types/rifa";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import BarraPorgresso from "../../components/barraProgresso";
+import Markdown from "@/components/Markdown";
 
 const RifaPage = () => {
   const { rifaId } = useParams();
 
   const { data: dataRifa, isLoading: isLoadingRifa } = useGetRifaById(
-    rifaId ?? ""
+    rifaId ?? "",
   );
 
   useEffect(() => {}, [isLoadingRifa]);
 
   // Estado para gerenciar a seleção dos botões
   const [selectedButtons, setSelectedButtons] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const [soldButtons, setSoldButtons] = useState<Set<string>>(new Set());
@@ -53,8 +54,6 @@ const RifaPage = () => {
   }, [dataRifa]);
 
   const [totalPrice, setTotalPrice] = useState(0);
-
-  // esta errado, pegar do usuario criador da rifa, localstorage tem que ser o comprador
 
   const handleGeneratedNumbers = (numbers: number[]) => {
     const updated = new Set(numbers.map(String));
@@ -99,7 +98,7 @@ const RifaPage = () => {
         <Card className="w-screen mx-10 mb-10">
           <CardHeader>
             <CardTitle>{dataRifa?.title}</CardTitle>
-            <CardDescription>{dataRifa?.descriptionAward}</CardDescription>
+            <CardDescription>{dataRifa?.description}</CardDescription>
           </CardHeader>
           <CardContent>
             <Carousel opts={{ loop: true }}>
@@ -109,7 +108,7 @@ const RifaPage = () => {
                     <CarouselItem key={foto.id} className="basis-full">
                       <DisplayImage documentId={foto.id} alt={foto.name} />
                     </CarouselItem>
-                  )
+                  ),
                 )}
               </CarouselContent>
               <CarouselPrevious />
@@ -144,12 +143,8 @@ const RifaPage = () => {
             <CardDescription></CardDescription>
           </CardHeader>
           <CardContent className="w-full">
-            <div className="flex flex-row flex-wrap p-2 overflow-y-auto max-h-60 w-full bg-slate-100">
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: dataRifa.description.replace(/\n/g, "<br />"),
-                }}
-              />
+            <div className="w-full max-h-60 overflow-y-auto rounded-md bg-slate-100 p-4">
+              <Markdown value={dataRifa?.descriptionAward} />
             </div>
           </CardContent>
 

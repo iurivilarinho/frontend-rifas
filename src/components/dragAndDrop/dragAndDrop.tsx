@@ -8,7 +8,6 @@ import { useState, useEffect } from "react";
 import CloseIcon from "@/assets/icons/closeIcon";
 import { Label } from "../input/Label";
 
-// Aceita tanto arquivos novos (File) quanto arquivos do backend (Document)
 interface Document {
   nome: string;
   contentType: string;
@@ -20,7 +19,11 @@ interface DragAndDropProps {
   onAddFile?: (files: File[]) => void;
   acceptedFileTypes?: Accept;
   notification?: NotificationProps;
-  initialFiles?: Document[]; // Arquivos iniciais
+  initialFiles?: Document[];
+
+  multiple?: boolean; // ✅ novo
+  maxFiles?: number; // ✅ novo (ex.: 1 para capa)
+  disabled?: boolean; // ✅ novo
 }
 
 const DragAndDrop = ({
@@ -29,54 +32,72 @@ const DragAndDrop = ({
   onAddFile,
   acceptedFileTypes,
   notification,
-  initialFiles = [], // Inicializa como array vazio por padrão
+  initialFiles = [],
+  multiple = true,
+  maxFiles,
+  disabled = false,
 }: DragAndDropProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [existingFiles, setExistingFiles] = useState<Document[]>(initialFiles);
 
   useEffect(() => {
-    setExistingFiles(initialFiles); // Atualiza os arquivos existentes
+    setExistingFiles(initialFiles);
   }, [initialFiles]);
 
   const { getRootProps, getInputProps, open, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
-      const updatedFiles = [...selectedFiles, ...acceptedFiles]; // Adiciona os novos arquivos
-      setSelectedFiles(updatedFiles);
-      if (onAddFile) {
-        onAddFile(updatedFiles);
-      }
+      if (disabled) return;
+
+      // ✅ se for capa (single), substitui
+      const nextFiles = multiple
+        ? [...selectedFiles, ...acceptedFiles]
+        : acceptedFiles.slice(0, 1);
+
+      // ✅ respeitar maxFiles, se definido
+      const capped =
+        typeof maxFiles === "number" ? nextFiles.slice(0, maxFiles) : nextFiles;
+
+      setSelectedFiles(capped);
+      onAddFile?.(capped);
     },
     noClick: true,
     accept: acceptedFileTypes ?? {},
+    multiple, // ✅
+    maxFiles: maxFiles ?? (multiple ? 0 : 1), // 0 = sem limite no react-dropzone
+    disabled, // ✅ bloqueia drag/drop
   });
 
   const handleRemoveFile = (fileName: string, isExisting: boolean) => {
+    if (disabled) return;
+
     if (isExisting) {
-      // Remove um arquivo existente
       const updatedExistingFiles = existingFiles.filter(
-        (file) => file.nome !== fileName,
+        (f) => f.nome !== fileName,
       );
       setExistingFiles(updatedExistingFiles);
+
+      // ✅ se quiser que o parent saiba que removeu existente, você pode disparar onAddFile também,
+      // mas como existente não está em selectedFiles, geralmente você trata removidos separadamente.
     } else {
-      // Remove um arquivo novo
-      const updatedFiles = selectedFiles.filter(
-        (file) => file.name !== fileName,
-      );
+      const updatedFiles = selectedFiles.filter((f) => f.name !== fileName);
       setSelectedFiles(updatedFiles);
-      if (onAddFile) {
-        onAddFile(updatedFiles); // Atualiza a lista de arquivos novos
-      }
+      onAddFile?.(updatedFiles);
     }
   };
 
   return (
     <div className="grid w-full gap-3">
       {label && <Label htmlFor={id}>{label}</Label>}
+
       <div
         {...getRootProps({
           className: mergeClasses(
             "flex flex-col items-center justify-center border-2 border-dashed rounded-md text-center gap-2 p-6",
-            isDragActive ? "border-primary bg-muted" : "border-slate-300",
+            disabled
+              ? "opacity-60 cursor-not-allowed"
+              : isDragActive
+                ? "border-primary bg-muted"
+                : "border-slate-300",
           ),
         })}
       >
@@ -89,13 +110,13 @@ const DragAndDrop = ({
             </p>
             <p className="font-semibold text-muted-foreground">ou</p>
           </div>
-          <Button size="sm" onClick={open} type="button">
+          <Button size="sm" onClick={open} type="button" disabled={disabled}>
             Procure
           </Button>
         </>
       </div>
 
-      {/* Exibindo arquivos existentes */}
+      {/* existentes */}
       {existingFiles.length > 0 && (
         <div className="mt-2 grid gap-2">
           {existingFiles.map((file) => (
@@ -104,8 +125,9 @@ const DragAndDrop = ({
               <span className="text-sm text-muted-foreground">{file.nome}</span>
               <button
                 type="button"
-                onClick={() => handleRemoveFile(file.nome, true)} // Arquivo existente
+                onClick={() => handleRemoveFile(file.nome, true)}
                 className="ml-2 text-muted-foreground"
+                disabled={disabled}
               >
                 <CloseIcon className="h-4 w-4" />
               </button>
@@ -114,7 +136,7 @@ const DragAndDrop = ({
         </div>
       )}
 
-      {/* Exibindo arquivos novos */}
+      {/* novos */}
       {selectedFiles.length > 0 && (
         <div className="mt-2 grid gap-2">
           {selectedFiles.map((file) => (
@@ -123,8 +145,9 @@ const DragAndDrop = ({
               <span className="text-sm text-muted-foreground">{file.name}</span>
               <button
                 type="button"
-                onClick={() => handleRemoveFile(file.name, false)} // Arquivo novo
+                onClick={() => handleRemoveFile(file.name, false)}
                 className="ml-2 text-muted-foreground"
+                disabled={disabled}
               >
                 <CloseIcon className="h-4 w-4" />
               </button>

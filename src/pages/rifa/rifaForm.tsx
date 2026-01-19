@@ -12,13 +12,14 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import Loading from "@/components/loading";
 import { useCustomDialogContext } from "@/components/dialog/useCustomDialogContext";
 import { BadgeCheck, Eye, Pencil, Plus } from "lucide-react";
 import { Field, FieldError, FieldLabel } from "@/components/input/Field";
+import { EditorBlockNoteMd } from "@/components/input/MarkDownField";
 
 const FORM_TYPES = ["create", "edit", "view"] as const;
 type FormType = (typeof FORM_TYPES)[number];
@@ -36,6 +37,15 @@ const rifaFormSchema = z.object({
   compraMinCotas: z.number().positive("A compra mínima deve ser positiva"),
   compraMaxCotas: z.number().positive("A compra máxima deve ser positiva"),
   descriptionAward: z.string().min(1, "A descrição da premiação é obrigatória"),
+
+  // ✅ novo: campo obrigatório no request
+  showQuotas: z.boolean(),
+
+  // ✅ cover como array com 1 item (compatível com DragAndDrop)
+  cover: z.any().refine((files) => Array.isArray(files) && files.length === 1, {
+    message: "Adicione a imagem de capa",
+  }),
+
   images: z.any().refine((files) => Array.isArray(files) && files.length > 0, {
     message: "Adicione ao menos uma imagem",
   }),
@@ -54,26 +64,33 @@ const convertDocumentToFile = (document: any): File => {
 
 const buildRifaFormData = (data: RifaFormData) => {
   const formData = new FormData();
-  const { images, ...props } = data;
+  const { images, cover, ...props } = data;
 
-  if (images) {
-    if (Array.isArray(images)) {
-      images.forEach((file) => {
-        if (file?.documento)
-          formData.append("files", convertDocumentToFile(file));
-        else formData.append("files", file);
-      });
-    } else {
-      if ((images as any)?.documento)
-        formData.append("file", convertDocumentToFile(images));
-      else formData.append("file", images);
-    }
+  // cover (File[])
+  if (Array.isArray(cover) && cover[0]) {
+    const file = cover[0];
+    formData.append(
+      "cover",
+      (file as any)?.documento ? convertDocumentToFile(file) : file,
+    );
   }
 
+  // images (File[])
+  if (Array.isArray(images)) {
+    images.forEach((file) => {
+      formData.append(
+        "images",
+        (file as any)?.documento ? convertDocumentToFile(file) : file,
+      );
+    });
+  }
+
+  // ✅ props inclui showQuotas (boolean)
   formData.append(
-    "form",
+    "request",
     new Blob([JSON.stringify(props)], { type: "application/json" }),
   );
+
   return formData;
 };
 
@@ -122,6 +139,7 @@ const RifaForm = () => {
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors },
     reset,
   } = useForm<RifaFormData>({
@@ -134,6 +152,8 @@ const RifaForm = () => {
       compraMinCotas: 0,
       compraMaxCotas: 0,
       descriptionAward: "",
+      showQuotas: true, // ✅ default (ajuste conforme regra do produto)
+      cover: [],
       images: [],
     },
   });
@@ -234,15 +254,42 @@ const RifaForm = () => {
                 )}
               </Field>
 
-              <Textarea
-                placeholder="Descrição da rifa"
-                {...register("description")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.description),
-                  notification: errors.description?.message,
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="description">Descrição</FieldLabel>
+                <Textarea
+                  placeholder="Descrição da rifa"
+                  {...register("description")}
+                  disabled={isViewMode}
+                  notification={{
+                    isError: Boolean(errors.description),
+                    notification: errors.description?.message,
+                  }}
+                />
+              </Field>
+            </div>
+
+            {/* ✅ showQuotas */}
+            <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900">Exibir cotas</p>
+                  <p className="text-xs text-gray-600">
+                    Define se as cotas ficam visíveis para o usuário.
+                  </p>
+                </div>
+
+                <Controller
+                  name="showQuotas"
+                  control={control}
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isViewMode}
+                    />
+                  )}
+                />
+              </div>
             </div>
 
             <div className="rounded-lg border border-green-100 bg-green-50 p-4">
@@ -356,39 +403,87 @@ const RifaForm = () => {
             </div>
 
             <div className="border-t pt-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">
+              <h2 className="mb-3 text-xl font-semibold text-gray-900">
                 Detalhes do prêmio
               </h2>
 
-              <Textarea
-                className="my-3"
-                label="Descrição da premiação"
-                placeholder="Descrição da premiação"
-                {...register("descriptionAward")}
-                disabled={isViewMode}
-                notification={{
-                  isError: Boolean(errors.descriptionAward),
-                  notification: errors.descriptionAward?.message,
-                }}
-              />
+              <Field>
+                <FieldLabel htmlFor="descriptionAward">
+                  Descrição da premiação
+                </FieldLabel>
 
-              <DragAndDrop
-                initialFiles={rifaData?.images}
-                onAddFile={(files) =>
-                  setValue("images", files, { shouldValidate: true })
-                }
-                label="Imagens do Prêmio"
-                acceptedFileTypes={{
-                  ".jpg": ["image/jpeg"],
-                  ".jpeg": ["image/jpeg"],
-                  ".png": ["image/png"],
-                }}
-                notification={{
-                  isError: Boolean(errors.images),
-                  notification: String(errors.images?.message ?? ""),
-                }}
-                //disabled={isViewMode}
-              />
+                <Controller
+                  name="descriptionAward"
+                  control={control}
+                  render={({ field }) => (
+                    <EditorBlockNoteMd
+                      docKey={rifaId ?? "new"}
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      disabled={isViewMode}
+                      error={Boolean(errors.descriptionAward)}
+                      minHeight={320}
+                    />
+                  )}
+                />
+
+                {errors.descriptionAward?.message && (
+                  <FieldError>{errors.descriptionAward.message}</FieldError>
+                )}
+              </Field>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+                  <p className="mb-2 font-medium text-gray-900">
+                    Imagem de capa
+                  </p>
+                  <DragAndDrop
+                    id="cover"
+                    label=""
+                    initialFiles={rifaData?.cover ? [rifaData.cover] : []}
+                    onAddFile={(files) =>
+                      setValue("cover", files, { shouldValidate: true })
+                    }
+                    multiple={false}
+                    maxFiles={1}
+                    disabled={isViewMode}
+                    acceptedFileTypes={{
+                      ".jpg": ["image/jpeg"],
+                      ".jpeg": ["image/jpeg"],
+                      ".png": ["image/png"],
+                    }}
+                    notification={{
+                      isError: Boolean(errors.cover),
+                      notification: String(errors.cover?.message ?? ""),
+                    }}
+                  />
+                </div>
+
+                <div className="rounded-lg border border-green-100 bg-green-50 p-4">
+                  <p className="mb-2 font-medium text-gray-900">
+                    Imagens do prêmio
+                  </p>
+                  <DragAndDrop
+                    id="images"
+                    label=""
+                    initialFiles={rifaData?.images}
+                    onAddFile={(files) =>
+                      setValue("images", files, { shouldValidate: true })
+                    }
+                    multiple
+                    disabled={isViewMode}
+                    acceptedFileTypes={{
+                      ".jpg": ["image/jpeg"],
+                      ".jpeg": ["image/jpeg"],
+                      ".png": ["image/png"],
+                    }}
+                    notification={{
+                      isError: Boolean(errors.images),
+                      notification: String(errors.images?.message ?? ""),
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
             {!isViewMode && (
