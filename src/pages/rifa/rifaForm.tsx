@@ -139,6 +139,7 @@ const RifaForm = () => {
     register,
     handleSubmit,
     setValue,
+    watch,
     control,
     formState: { errors },
     reset,
@@ -172,7 +173,13 @@ const RifaForm = () => {
   };
 
   useEffect(() => {
-    if (rifaData) reset(rifaData);
+    if (!rifaData) return;
+
+    reset({
+      ...rifaData,
+      cover: rifaData.cover ? [rifaData.cover] : [],
+      images: Array.isArray(rifaData.images) ? rifaData.images : [],
+    });
   }, [rifaData, reset]);
 
   useEffect(() => {
@@ -194,6 +201,9 @@ const RifaForm = () => {
       });
     }
   }, [errorPost, errorPut, errorGet, setCustomDialog]);
+
+  const coverFiles = watch("cover");
+  const imagesFiles = watch("images");
 
   const submitForm = (data: RifaFormData) => {
     const formData = buildRifaFormData(data);
@@ -440,17 +450,16 @@ const RifaForm = () => {
                   <DragAndDrop
                     id="cover"
                     label=""
-                    initialFiles={rifaData?.cover ? [rifaData.cover] : []}
-                    onAddFile={(files) =>
+                    value={coverFiles ?? []}
+                    onChange={(files) =>
                       setValue("cover", files, { shouldValidate: true })
                     }
                     multiple={false}
                     maxFiles={1}
                     disabled={isViewMode}
                     acceptedFileTypes={{
-                      ".jpg": ["image/jpeg"],
-                      ".jpeg": ["image/jpeg"],
-                      ".png": ["image/png"],
+                      "image/jpeg": [".jpg", ".jpeg"],
+                      "image/png": [".png"],
                     }}
                     notification={{
                       isError: Boolean(errors.cover),
@@ -466,16 +475,15 @@ const RifaForm = () => {
                   <DragAndDrop
                     id="images"
                     label=""
-                    initialFiles={rifaData?.images}
-                    onAddFile={(files) =>
+                    value={imagesFiles ?? []}
+                    onChange={(files) =>
                       setValue("images", files, { shouldValidate: true })
                     }
                     multiple
                     disabled={isViewMode}
                     acceptedFileTypes={{
-                      ".jpg": ["image/jpeg"],
-                      ".jpeg": ["image/jpeg"],
-                      ".png": ["image/png"],
+                      "image/jpeg": [".jpg", ".jpeg"],
+                      "image/png": [".png"],
                     }}
                     notification={{
                       isError: Boolean(errors.images),
