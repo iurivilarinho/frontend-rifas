@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const httpRequest = axios.create({
-  baseURL: "http://goldenticket.lat:8089",
+  baseURL: "https://goldenticket.lat:8089",
   withCredentials: true,
 });
 

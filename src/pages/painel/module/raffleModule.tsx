@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Eye, ShoppingCart } from "lucide-react";
 
 import Loading from "@/components/loading";
 import { Button } from "@/components/button/button";
@@ -31,12 +31,33 @@ const RifasSection = () => {
     navigate(`/rifa/form/edit/${rifaId}`);
   };
 
+  const onViewRifa = (rifaId?: number) => {
+    if (!rifaId) return;
+    navigate(`/rifa/form/view/${rifaId}`);
+  };
+
+  const onSaleRifa = (rifaId?: number) => {
+    if (!rifaId) return;
+    navigate(`/rifa/${rifaId}`);
+  };
+
   const columns: ColumnDef<Rifa, any>[] = useMemo(() => {
     const actions: ColumnAction[] = [
       {
         label: "Editar",
         onClick: (row) => onEditRifa((row.original as Rifa).id),
         icon: <Pencil className="h-4 w-4" />,
+      },
+      {
+        label: "Visualizar",
+        onClick: (row) => onViewRifa((row.original as Rifa).id),
+        icon: <Eye className="h-4 w-4" />,
+      },
+
+      {
+        label: "Venda",
+        onClick: (row) => onSaleRifa((row.original as Rifa).id),
+        icon: <ShoppingCart className="h-4 w-4" />,
       },
     ];
 

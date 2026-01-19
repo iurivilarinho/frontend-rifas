@@ -46,10 +46,10 @@ const DialogInterval = ({
     return z
       .object({
         de: z
-          .number({ invalid_type_error: "Campo obrigatório" })
+          .number({ message: "Campo obrigatório" })
           .min(1, "Valor deve ser maior ou igual a 1"),
         ate: z
-          .number({ invalid_type_error: "Campo obrigatório" })
+          .number({ message: "Campo obrigatório" })
           .min(1, "Valor deve ser maior ou igual a 1")
           .max(max, `Valor deve ser menor ou igual a ${max}`),
       })
