@@ -1,11 +1,10 @@
-// src/pages/painel/sections/UsuariosSection.tsx
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Pencil, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import Loading from "@/components/loading";
 import { Button } from "@/components/button/button";
+import Loading from "@/components/loading";
 import { TableRoot } from "@/components/table/Table";
 import { TableContent } from "@/components/table/TableContent";
 import {
@@ -14,34 +13,32 @@ import {
 } from "@/components/table/components/TableActionsDropdown";
 
 // ajuste para o hook real do seu projeto (nome/caminho)
+import {
+  Pagination,
+  TablePagination,
+} from "@/components/table/TablePagination";
 import { useGetUser } from "@/lib/api/tanstackQuery/user";
-
-export interface User {
-  id: number;
-  foto?: File;
-  nome: string;
-  dataNascimento: string; // YYYY-MM-DD
-  cpf: string;
-  rg: string;
-  genero: string;
-  estadoCivil: string;
-  telefoneCelular: string;
-  telefoneResidencial?: string;
-  email: string;
-  endereco: unknown;
-}
-
-const formatDateBR = (iso?: string) => {
-  if (!iso) return "-";
-  const [y, m, d] = iso.split("-");
-  if (!y || !m || !d) return iso;
-  return `${d}/${m}/${y}`;
-};
+import { PageResponse } from "@/types/PageReseponse";
+import { User } from "@/types/user";
 
 const UsuariosSection = () => {
   const navigate = useNavigate();
 
-  const { data: users, isLoading, error } = useGetUser();
+  // Spring Page é 0-based (number: 0 é a primeira)
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
+
+  // Ideal: seu hook aceitar { page, size } e retornar PageResponse<UserApi>
+  const { data, isLoading, error } = useGetUser({
+    page: pageIndex,
+    size: pageSize,
+  }) as {
+    data?: PageResponse<User>;
+    isLoading: boolean;
+    error: unknown;
+  };
+
+  const users = data?.content ?? [];
 
   const onAddUser = () => navigate("/pessoa/form/create");
   const onEditUser = (userId?: number) => {
@@ -60,18 +57,16 @@ const UsuariosSection = () => {
 
     return [
       {
-        id: "nome",
-        accessorKey: "nome",
+        id: "name",
+        accessorKey: "name",
         header: "Nome",
         enableSorting: true,
       },
       {
-        id: "dataNascimento",
-        accessorKey: "dataNascimento",
-        header: "Nascimento",
-        size: 140,
+        id: "login",
+        accessorKey: "login",
+        header: "Login",
         enableSorting: true,
-        cell: (ctx) => formatDateBR(ctx.getValue<string>()),
       },
       {
         id: "cpf",
@@ -80,16 +75,16 @@ const UsuariosSection = () => {
         size: 160,
       },
       {
-        id: "rg",
-        accessorKey: "rg",
-        header: "RG",
-        size: 140,
+        id: "email",
+        accessorKey: "email",
+        header: "Email",
       },
       {
-        id: "telefoneCelular",
-        accessorKey: "telefoneCelular",
-        header: "Celular",
-        size: 160,
+        id: "status",
+        accessorKey: "status",
+        header: "Ativo",
+        size: 110,
+        cell: (ctx) => (ctx.getValue<boolean>() ? "Sim" : "Não"),
       },
       {
         id: "actions",
@@ -103,6 +98,26 @@ const UsuariosSection = () => {
       },
     ];
   }, []);
+
+  const pagination: Pagination = {
+    // TablePagination é 1-based
+    page: (data?.number ?? 0) + 1,
+    size: data?.size ?? pageSize,
+    totalElements: data?.totalElements ?? 0,
+    totalPages: data?.totalPages ?? 1,
+    first: data?.first ?? true,
+    last: data?.last ?? true,
+  };
+
+  const onPageChange = (page1Based: number) => {
+    // backend (Spring) é 0-based
+    setPageIndex(Math.max(0, page1Based - 1));
+  };
+
+  const onPageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPageIndex(0); // volta pra primeira página ao trocar tamanho
+  };
 
   if (error) {
     return (
@@ -128,7 +143,7 @@ const UsuariosSection = () => {
 
       {isLoading ? (
         <Loading />
-      ) : !users || users.length === 0 ? (
+      ) : users.length === 0 ? (
         <div className="border rounded-xl p-6 bg-white text-sm text-gray-700">
           Nenhum usuário encontrado
         </div>
@@ -142,6 +157,13 @@ const UsuariosSection = () => {
           >
             <TableContent stickyHeader />
           </TableRoot>
+
+          <TablePagination
+            pagination={pagination}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            isSticky
+          />
         </div>
       )}
     </section>

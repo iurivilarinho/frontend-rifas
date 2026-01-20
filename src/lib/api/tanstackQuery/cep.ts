@@ -6,9 +6,13 @@ const getCEP = async (cep: string) => {
   return data;
 };
 
-export const useGetCEP = (cep: string) => {
+export const useGetCEP = (cepRaw: string) => {
+  const cep = (cepRaw ?? "").replace(/\D/g, "");
+  const enabled = cep.length === 8;
+
   return useQuery({
     queryKey: ["cep", cep],
+    enabled,
     queryFn: () => getCEP(cep),
   });
 };

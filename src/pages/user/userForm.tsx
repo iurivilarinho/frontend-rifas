@@ -1,30 +1,31 @@
 import { Button } from "@/components/button/button";
 import { useCustomDialogContext } from "@/components/dialog/useCustomDialogContext";
+import { Field, FieldError, FieldLabel } from "@/components/input/Field";
 import { Input } from "@/components/input/Input";
+import Loading from "@/components/loading";
 import { useGetCEP } from "@/lib/api/tanstackQuery/cep";
 import {
   useGetUserById,
   usePostUser,
   usePutUser,
 } from "@/lib/api/tanstackQuery/user";
+import { isValidCPF } from "@/utils/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
-import { Path, useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
-import { z } from "zod";
-import Loading from "@/components/loading";
 import {
   BadgeCheck,
-  Eye,
-  Pencil,
-  Plus,
-  MapPin,
-  Mail,
-  Phone,
-  IdCard,
   CalendarDays,
+  Eye,
+  IdCard,
+  Mail,
+  MapPin,
+  Pencil,
+  Phone,
+  Plus,
 } from "lucide-react";
-import { Field, FieldError, FieldLabel } from "@/components/input/Field";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router-dom";
+import { z } from "zod";
 
 const FORM_TYPES = ["create", "edit", "view"] as const;
 type FormType = (typeof FORM_TYPES)[number];
@@ -32,7 +33,7 @@ type FormType = (typeof FORM_TYPES)[number];
 const isFormType = (v: unknown): v is FormType =>
   typeof v === "string" && (FORM_TYPES as readonly string[]).includes(v);
 
-const enderecoSchema = z.object({
+const addressSchema = z.object({
   cep: z.string().trim().min(1, "CEP é obrigatório"),
   estado: z.string().trim().min(1, "Estado é obrigatório"),
   cidade: z.string().trim().min(1, "Cidade é obrigatória"),
@@ -43,25 +44,31 @@ const enderecoSchema = z.object({
 });
 
 const usuarioSchema = z.object({
-  nomeCompleto: z.string().trim().min(1, "Nome completo é obrigatório"),
-  dataNascimento: z.string().trim().min(1, "Data de nascimento é obrigatória"),
-  cpf: z.string().trim().min(1, "CPF é obrigatório"),
+  name: z.string().trim().min(1, "Nome completo é obrigatório"),
+  dateOfBirth: z.string().trim().min(1, "Data de nascimento é obrigatória"),
+  cpf: z
+    .string()
+    .trim()
+    .min(1, "CPF é obrigatório")
+    .transform((v) => v.replace(/\D/g, ""))
+    .refine((v) => isValidCPF(v), "CPF inválido"),
+
   rg: z.string().trim().min(1, "RG é obrigatório"),
-  telefoneCelular: z.string().trim().min(1, "Telefone celular é obrigatório"),
+  personalPhone: z.string().trim().min(1, "Telefone celular é obrigatório"),
   email: z.email("Email inválido"),
-  endereco: enderecoSchema,
+  address: addressSchema,
 });
 
 type UsuarioFormValues = z.infer<typeof usuarioSchema>;
 
 const defaultValues: UsuarioFormValues = {
-  nomeCompleto: "",
-  dataNascimento: "",
+  name: "",
+  dateOfBirth: "",
   cpf: "",
   rg: "",
-  telefoneCelular: "",
+  personalPhone: "",
   email: "",
-  endereco: {
+  address: {
     cep: "",
     estado: "",
     cidade: "",
@@ -73,9 +80,10 @@ const defaultValues: UsuarioFormValues = {
 };
 
 function buildUsuarioFormData(values: UsuarioFormValues) {
+  console.log("cpf", values.cpf);
   const formData = new FormData();
   formData.append(
-    "form",
+    "request",
     new Blob([JSON.stringify(values)], { type: "application/json" }),
   );
   return formData;
@@ -108,13 +116,15 @@ const UserForm = () => {
   }, [formType]);
 
   const [cep, setCep] = useState("");
-  const { data: dataCep } = useGetCEP(cep);
+  const cepDigits = cep.replace(/\D/g, "");
+
+  const { data: dataCep } = useGetCEP(cepDigits);
 
   const {
     data: dataUsuario,
     isLoading: isLoadingGet,
     error: errorGet,
-  } = useGetUserById(shouldFetch ? (userId as string) : "");
+  } = useGetUserById(userId as string, { enabled: shouldFetch });
 
   const {
     mutate: postUsuario,
@@ -131,10 +141,10 @@ const UserForm = () => {
   } = usePutUser();
 
   const {
-    setValue,
     reset,
-    watch,
-    trigger,
+    register,
+    setValue,
+    handleSubmit,
     formState: { errors },
   } = useForm<UsuarioFormValues>({
     resolver: zodResolver(usuarioSchema),
@@ -143,20 +153,15 @@ const UserForm = () => {
     shouldUnregister: false,
   });
 
-  const formValues = watch();
+  const submitForm = handleSubmit((values) => {
+    console.log("cpf", values.cpf); // só números
+    postUsuario(buildUsuarioFormData(values));
+  });
 
-  const handleChange = <TPath extends Path<UsuarioFormValues>>(
-    path: TPath,
-    value: any,
-  ) => setValue(path, value, { shouldDirty: true });
-
-  const validateField = async <TPath extends Path<UsuarioFormValues>>(
-    path: TPath,
-  ) => {
-    await trigger(path);
-  };
-
-  const validateForm = async () => await trigger();
+  const updateForm = handleSubmit((values) => {
+    console.log("cpf", values.cpf); // só números
+    putUsuario({ user: buildUsuarioFormData(values), id: userId ?? "" });
+  });
 
   useEffect(() => {
     if (!dataUsuario) return;
@@ -164,27 +169,19 @@ const UserForm = () => {
     const merged: UsuarioFormValues = {
       ...defaultValues,
       ...dataUsuario,
-      endereco: { ...defaultValues.endereco, ...(dataUsuario as any).endereco },
+      address: { ...defaultValues.address, ...(dataUsuario as any).address },
     };
 
     reset(merged, { keepDirty: false, keepTouched: false });
   }, [dataUsuario, reset]);
-
   useEffect(() => {
     if (!dataCep) return;
 
-    handleChange("endereco.estado", dataCep.uf ?? "");
-    handleChange("endereco.bairro", dataCep.bairro ?? "");
-    handleChange("endereco.cidade", dataCep.localidade ?? "");
-    handleChange("endereco.rua", dataCep.logradouro ?? "");
-
-    void trigger([
-      "endereco.estado",
-      "endereco.bairro",
-      "endereco.cidade",
-      "endereco.rua",
-    ]);
-  }, [dataCep, trigger]);
+    setValue("address.estado", dataCep.uf ?? "", { shouldDirty: true });
+    setValue("address.cidade", dataCep.localidade ?? "", { shouldDirty: true });
+    setValue("address.bairro", dataCep.bairro ?? "", { shouldDirty: true });
+    setValue("address.rua", dataCep.logradouro ?? "", { shouldDirty: true });
+  }, [dataCep, setValue]);
 
   useEffect(() => {
     if (isSuccessPost || isSuccessPut) navigate("/");
@@ -211,18 +208,6 @@ const UserForm = () => {
     () => isPendingPost || isPendingPut || isLoadingGet,
     [isPendingPost, isPendingPut, isLoadingGet],
   );
-
-  const submitForm = async () => {
-    const ok = await validateForm();
-    if (!ok) return;
-    postUsuario(buildUsuarioFormData(formValues));
-  };
-
-  const updateForm = async () => {
-    const ok = await validateForm();
-    if (!ok) return;
-    putUsuario({ user: buildUsuarioFormData(formValues), id: userId ?? "" });
-  };
 
   const handlePrimaryAction = () =>
     formType === "edit" ? updateForm() : submitForm();
@@ -271,37 +256,31 @@ const UserForm = () => {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field>
-                <FieldLabel htmlFor="nomeCompleto">Nome Completo</FieldLabel>
+                <FieldLabel htmlFor="name">Nome Completo</FieldLabel>
                 <Input
-                  id="nomeCompleto"
-                  value={formValues.nomeCompleto}
-                  onChange={(e) => handleChange("nomeCompleto", e.target.value)}
-                  onBlur={() => validateField("nomeCompleto")}
+                  id="name"
+                  {...register("name")}
                   disabled={isViewMode}
-                  aria-invalid={Boolean(errors.nomeCompleto?.message)}
+                  aria-invalid={Boolean(errors.name?.message)}
                 />
-                {errors.nomeCompleto?.message && (
-                  <FieldError>{errors.nomeCompleto.message}</FieldError>
+                {errors.name?.message && (
+                  <FieldError>{errors.name.message}</FieldError>
                 )}
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="dataNascimento">
+                <FieldLabel htmlFor="dateOfBirth">
                   Data de Nascimento
                 </FieldLabel>
                 <Input
-                  id="dataNascimento"
+                  id="dateOfBirth"
                   type="date"
-                  value={formValues.dataNascimento}
-                  onChange={(e) =>
-                    handleChange("dataNascimento", e.target.value)
-                  }
-                  onBlur={() => validateField("dataNascimento")}
+                  {...register("dateOfBirth")}
                   disabled={isViewMode}
-                  aria-invalid={Boolean(errors.dataNascimento?.message)}
+                  aria-invalid={Boolean(errors.dateOfBirth?.message)}
                 />
-                {errors.dataNascimento?.message && (
-                  <FieldError>{errors.dataNascimento.message}</FieldError>
+                {errors.dateOfBirth?.message && (
+                  <FieldError>{errors.dateOfBirth.message}</FieldError>
                 )}
               </Field>
 
@@ -309,9 +288,7 @@ const UserForm = () => {
                 <FieldLabel htmlFor="cpf">CPF</FieldLabel>
                 <Input
                   id="cpf"
-                  value={formValues.cpf}
-                  onChange={(e) => handleChange("cpf", e.target.value)}
-                  onBlur={() => validateField("cpf")}
+                  {...register("cpf")}
                   disabled={isViewMode}
                   aria-invalid={Boolean(errors.cpf?.message)}
                 />
@@ -324,9 +301,7 @@ const UserForm = () => {
                 <FieldLabel htmlFor="rg">RG</FieldLabel>
                 <Input
                   id="rg"
-                  value={formValues.rg}
-                  onChange={(e) => handleChange("rg", e.target.value)}
-                  onBlur={() => validateField("rg")}
+                  {...register("rg")}
                   disabled={isViewMode}
                   aria-invalid={Boolean(errors.rg?.message)}
                 />
@@ -336,21 +311,17 @@ const UserForm = () => {
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="telefoneCelular">
+                <FieldLabel htmlFor="personalPhone">
                   Telefone Celular
                 </FieldLabel>
                 <Input
-                  id="telefoneCelular"
-                  value={formValues.telefoneCelular}
-                  onChange={(e) =>
-                    handleChange("telefoneCelular", e.target.value)
-                  }
-                  onBlur={() => validateField("telefoneCelular")}
+                  id="personalPhone"
+                  {...register("personalPhone")}
                   disabled={isViewMode}
-                  aria-invalid={Boolean(errors.telefoneCelular?.message)}
+                  aria-invalid={Boolean(errors.personalPhone?.message)}
                 />
-                {errors.telefoneCelular?.message && (
-                  <FieldError>{errors.telefoneCelular.message}</FieldError>
+                {errors.personalPhone?.message && (
+                  <FieldError>{errors.personalPhone.message}</FieldError>
                 )}
               </Field>
 
@@ -359,9 +330,7 @@ const UserForm = () => {
                 <Input
                   id="email"
                   type="email"
-                  value={formValues.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  onBlur={() => validateField("email")}
+                  {...register("email")}
                   disabled={isViewMode}
                   aria-invalid={Boolean(errors.email?.message)}
                 />
@@ -381,124 +350,100 @@ const UserForm = () => {
 
             <div className="grid gap-4 sm:grid-cols-3">
               <Field>
-                <FieldLabel htmlFor="endereco_cep">CEP</FieldLabel>
+                <FieldLabel htmlFor="address_cep">CEP</FieldLabel>
                 <Input
-                  id="endereco_cep"
+                  id="address_cep"
                   disabled={isViewMode}
-                  value={formValues.endereco.cep}
-                  onChange={(e) => {
-                    handleChange("endereco.cep", e.target.value);
-                    setCep(e.target.value);
-                  }}
-                  onBlur={() => validateField("endereco.cep")}
-                  aria-invalid={Boolean(errors.endereco?.cep?.message)}
+                  aria-invalid={Boolean(errors.address?.cep?.message)}
+                  {...register("address.cep", {
+                    onChange: (e) => setCep(e.target.value),
+                  })}
                 />
-                {errors.endereco?.cep?.message && (
-                  <FieldError>{errors.endereco.cep.message}</FieldError>
+
+                {errors.address?.cep?.message && (
+                  <FieldError>{errors.address.cep.message}</FieldError>
                 )}
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="endereco_estado">Estado</FieldLabel>
+                <FieldLabel htmlFor="address_estado">Estado</FieldLabel>
                 <Input
-                  id="endereco_estado"
+                  id="address_estado"
                   disabled={isViewMode}
-                  value={formValues.endereco.estado}
-                  onChange={(e) =>
-                    handleChange("endereco.estado", e.target.value)
-                  }
-                  onBlur={() => validateField("endereco.estado")}
-                  aria-invalid={Boolean(errors.endereco?.estado?.message)}
+                  {...register("address.estado")}
+                  aria-invalid={Boolean(errors.address?.estado?.message)}
                 />
-                {errors.endereco?.estado?.message && (
-                  <FieldError>{errors.endereco.estado.message}</FieldError>
+                {errors.address?.estado?.message && (
+                  <FieldError>{errors.address.estado.message}</FieldError>
                 )}
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="endereco_cidade">Cidade</FieldLabel>
+                <FieldLabel htmlFor="address_cidade">Cidade</FieldLabel>
                 <Input
-                  id="endereco_cidade"
+                  id="address_cidade"
                   disabled={isViewMode}
-                  value={formValues.endereco.cidade}
-                  onChange={(e) =>
-                    handleChange("endereco.cidade", e.target.value)
-                  }
-                  onBlur={() => validateField("endereco.cidade")}
-                  aria-invalid={Boolean(errors.endereco?.cidade?.message)}
+                  {...register("address.cidade")}
+                  aria-invalid={Boolean(errors.address?.cidade?.message)}
                 />
-                {errors.endereco?.cidade?.message && (
-                  <FieldError>{errors.endereco.cidade.message}</FieldError>
+                {errors.address?.cidade?.message && (
+                  <FieldError>{errors.address.cidade.message}</FieldError>
                 )}
               </Field>
 
               <Field className="sm:col-span-2">
-                <FieldLabel htmlFor="endereco_rua">Rua</FieldLabel>
+                <FieldLabel htmlFor="address_rua">Rua</FieldLabel>
                 <Input
-                  id="endereco_rua"
+                  id="address_rua"
                   disabled={isViewMode}
                   className="sm:col-span-2"
-                  value={formValues.endereco.rua}
-                  onChange={(e) => handleChange("endereco.rua", e.target.value)}
-                  onBlur={() => validateField("endereco.rua")}
-                  aria-invalid={Boolean(errors.endereco?.rua?.message)}
+                  {...register("address.rua")}
+                  aria-invalid={Boolean(errors.address?.rua?.message)}
                 />
-                {errors.endereco?.rua?.message && (
-                  <FieldError>{errors.endereco.rua.message}</FieldError>
+                {errors.address?.rua?.message && (
+                  <FieldError>{errors.address.rua.message}</FieldError>
                 )}
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="endereco_numero">Número</FieldLabel>
+                <FieldLabel htmlFor="address_numero">Número</FieldLabel>
                 <Input
-                  id="endereco_numero"
+                  id="address_numero"
                   disabled={isViewMode}
-                  value={formValues.endereco.numero}
-                  onChange={(e) =>
-                    handleChange("endereco.numero", e.target.value)
-                  }
-                  onBlur={() => validateField("endereco.numero")}
-                  aria-invalid={Boolean(errors.endereco?.numero?.message)}
+                  {...register("address.numero")}
+                  aria-invalid={Boolean(errors.address?.numero?.message)}
                 />
-                {errors.endereco?.numero?.message && (
-                  <FieldError>{errors.endereco.numero.message}</FieldError>
+                {errors.address?.numero?.message && (
+                  <FieldError>{errors.address.numero.message}</FieldError>
                 )}
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="endereco_bairro">Bairro</FieldLabel>
+                <FieldLabel htmlFor="address_bairro">Bairro</FieldLabel>
                 <Input
-                  id="endereco_bairro"
+                  id="address_bairro"
                   disabled={isViewMode}
-                  value={formValues.endereco.bairro}
-                  onChange={(e) =>
-                    handleChange("endereco.bairro", e.target.value)
-                  }
-                  onBlur={() => validateField("endereco.bairro")}
-                  aria-invalid={Boolean(errors.endereco?.bairro?.message)}
+                  {...register("address.bairro")}
+                  aria-invalid={Boolean(errors.address?.bairro?.message)}
                 />
-                {errors.endereco?.bairro?.message && (
-                  <FieldError>{errors.endereco.bairro.message}</FieldError>
+                {errors.address?.bairro?.message && (
+                  <FieldError>{errors.address.bairro.message}</FieldError>
                 )}
               </Field>
 
               <Field className="sm:col-span-2">
-                <FieldLabel htmlFor="endereco_complemento">
+                <FieldLabel htmlFor="address_complemento">
                   Complemento
                 </FieldLabel>
                 <Input
-                  id="endereco_complemento"
+                  id="address_complemento"
                   disabled={isViewMode}
                   className="sm:col-span-2"
-                  value={formValues.endereco.complemento}
-                  onChange={(e) =>
-                    handleChange("endereco.complemento", e.target.value)
-                  }
-                  onBlur={() => validateField("endereco.complemento")}
-                  aria-invalid={Boolean(errors.endereco?.complemento?.message)}
+                  {...register("address.complemento")}
+                  aria-invalid={Boolean(errors.address?.complemento?.message)}
                 />
-                {errors.endereco?.complemento?.message && (
-                  <FieldError>{errors.endereco.complemento.message}</FieldError>
+                {errors.address?.complemento?.message && (
+                  <FieldError>{errors.address.complemento.message}</FieldError>
                 )}
               </Field>
             </div>

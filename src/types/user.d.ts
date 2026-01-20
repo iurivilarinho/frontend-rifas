@@ -1,14 +1,11 @@
 export interface User {
   id: number;
-  foto?: File;
-  nome: string;
-  dataNascimento: string; // Utilizando string no formato YYYY-MM-DD
+  login: string;
+  name: string;
   cpf: string;
-  rg: string;
-  genero: string;
-  estadoCivil: string;
-  telefoneCelular: string;
-  telefoneResidencial?: string;
+  personalPhone: string;
   email: string;
-  endereco: Endereco;
+  status: boolean;
+  companyId: number | null;
+  roles: any[];
 }
