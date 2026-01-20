@@ -99,7 +99,7 @@ const RifaForm = () => {
   const { setCustomDialog } = useCustomDialogContext();
   const params = useParams();
   const formTypeParam = params.formType;
-  const rifaId = params.rifaId;
+  const raffleId = params.raffleId;
 
   const formType: FormType = isFormType(formTypeParam)
     ? formTypeParam
@@ -113,13 +113,13 @@ const RifaForm = () => {
   }, [formType]);
 
   const needsId = formType === "edit" || formType === "view";
-  const shouldFetch = needsId && Boolean(rifaId);
+  const shouldFetch = needsId && Boolean(raffleId);
 
   const {
     data: rifaData,
     isLoading: isLoadingGet,
     error: errorGet,
-  } = useGetRifaById(shouldFetch ? (rifaId as string) : "");
+  } = useGetRifaById(shouldFetch ? (raffleId as string) : "");
 
   const {
     mutate: postRifa,
@@ -183,7 +183,7 @@ const RifaForm = () => {
   }, [rifaData, reset]);
 
   useEffect(() => {
-    if (isSuccessPut || isSuccessPost) navigate("/");
+    if (isSuccessPut || isSuccessPost) navigate("/panel");
   }, [isSuccessPut, isSuccessPost, navigate]);
 
   useEffect(() => {
@@ -209,7 +209,7 @@ const RifaForm = () => {
     const formData = buildRifaFormData(data);
 
     if (formType === "edit") {
-      putRifa({ rifa: formData, id: rifaId ?? "" });
+      putRifa({ rifa: formData, id: raffleId ?? "" });
       return;
     }
 
@@ -427,7 +427,7 @@ const RifaForm = () => {
                   control={control}
                   render={({ field }) => (
                     <EditorBlockNoteMd
-                      docKey={rifaId ?? "new"}
+                      docKey={raffleId ?? "new"}
                       value={field.value ?? ""}
                       onChange={field.onChange}
                       disabled={isViewMode}

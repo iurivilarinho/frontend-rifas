@@ -22,19 +22,22 @@ const AppRouter = () => {
         <Route path="/login" element={<Login />} />
 
         {/* Painel pós-login */}
-        <Route path="/painel" element={<Painel />} />
+        <Route path="/panel" element={<Painel />} />
 
         {/* <Route path="/table" element={<ListaPessoa />} /> */}
 
         {/* Pessoa: form sempre em /pessoa/form/:formType/:userId? */}
-        <Route path="/pessoa/form/:formType/:userId?" element={<UserForm />} />
+        <Route path="/user/form/:formType/:userId?" element={<UserForm />} />
 
         {/* Rifa: detalhe separado do form */}
-        <Route path="/rifa/:rifaId" element={<Rifa />} />
-        <Route path="/rifa/form/:formType/:rifaId?" element={<RifaForm />} />
+        <Route path="/raffle/:raffleId" element={<Rifa />} />
+        <Route
+          path="/raffle/form/:formType/:raffleId?"
+          element={<RifaForm />}
+        />
 
         {/* Lista (recomendado: cpf via querystring /rifas?cpf=...) */}
-        <Route path="/rifas" element={<RifaList />} />
+        <Route path="/raffles" element={<RifaList />} />
       </Routes>
 
       <NavBarWrapper />

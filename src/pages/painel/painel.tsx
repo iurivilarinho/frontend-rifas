@@ -4,14 +4,14 @@ import UsuariosSection from "./module/userModule";
 
 const Painel = () => {
   const [params] = useSearchParams();
-  const menu = params.get("tab") ?? "rifas";
+  const menu = params.get("tab") ?? "raffles";
 
   return (
     <div className="min-h-screen bg-white pt-16">
       <div className="h-16" /> {/* spacer para não ficar atrás da navbar */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {menu === "rifas" && <RifasSection />}
-        {menu === "usuarios" && <UsuariosSection />}
+        {menu === "raffles" && <RifasSection />}
+        {menu === "users" && <UsuariosSection />}
       </div>
     </div>
   );

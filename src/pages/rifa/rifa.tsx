@@ -26,10 +26,10 @@ import BarraPorgresso from "../../components/barraProgresso";
 import Markdown from "@/components/Markdown";
 
 const RifaPage = () => {
-  const { rifaId } = useParams();
+  const { raffleId } = useParams();
 
   const { data: dataRifa, isLoading: isLoadingRifa } = useGetRifaById(
-    rifaId ?? "",
+    raffleId ?? "",
   );
 
   useEffect(() => {}, [isLoadingRifa]);

@@ -53,7 +53,7 @@ const LoginForm = () => {
         } catch {
           localStorage.setItem("user", String(userData));
         }
-        navigate("/painel", { replace: true });
+        navigate("/panel", { replace: true });
       },
       onError: (err) => {
         console.error("Falha no login:", err);

@@ -20,25 +20,25 @@ const RifasSection = () => {
   const navigate = useNavigate();
 
   const {
-    data: rifas,
+    data: raffles,
     isLoading: isLoadingRifas,
     error: errorRifas,
   } = useGetRifa();
 
-  const onAddRifa = () => navigate("/rifa/form/create");
-  const onEditRifa = (rifaId?: number) => {
-    if (!rifaId) return;
-    navigate(`/rifa/form/edit/${rifaId}`);
+  const onAddRifa = () => navigate("/raffle/form/create");
+  const onEditRifa = (raffleId?: number) => {
+    if (!raffleId) return;
+    navigate(`/raffle/form/edit/${raffleId}`);
   };
 
-  const onViewRifa = (rifaId?: number) => {
-    if (!rifaId) return;
-    navigate(`/rifa/form/view/${rifaId}`);
+  const onViewRifa = (raffleId?: number) => {
+    if (!raffleId) return;
+    navigate(`/raffle/form/view/${raffleId}`);
   };
 
-  const onSaleRifa = (rifaId?: number) => {
-    if (!rifaId) return;
-    navigate(`/rifa/${rifaId}`);
+  const onSaleRifa = (raffleId?: number) => {
+    if (!raffleId) return;
+    navigate(`/raffle/${raffleId}`);
   };
 
   const columns: ColumnDef<Rifa, any>[] = useMemo(() => {
@@ -102,7 +102,7 @@ const RifasSection = () => {
   }, []);
 
   if (errorRifas) {
-    return <div>Erro ao carregar rifas: {errorRifas.message}</div>;
+    return <div>Erro ao carregar raffles: {errorRifas.message}</div>;
   }
 
   return (
@@ -111,28 +111,28 @@ const RifasSection = () => {
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Rifas</h1>
           <p className="text-sm text-gray-600">
-            Lista de rifas cadastradas e ações rápidas.
+            Lista de raffles cadastradas e ações rápidas.
           </p>
         </div>
 
         <Button onClick={onAddRifa} className="h-10">
           <Plus className="mr-2 h-4 w-4" />
-          Adicionar rifa
+          Adicionar raffle
         </Button>
       </div>
 
       {isLoadingRifas ? (
         <Loading />
-      ) : !rifas || rifas.length === 0 ? (
+      ) : !raffles || raffles.length === 0 ? (
         <div className="border rounded-xl p-6 bg-white text-sm text-gray-700">
-          Nenhuma rifa encontrada
+          Nenhuma raffle encontrada
         </div>
       ) : (
         <div className="border rounded-xl overflow-hidden bg-white">
           <TableRoot<Rifa>
-            data={rifas}
+            data={raffles}
             columns={columns}
-            tableId="rifas-table"
+            tableId="raffles-table"
             fillContainerWidth
           >
             <TableContent stickyHeader />
