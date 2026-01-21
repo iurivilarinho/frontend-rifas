@@ -1,18 +1,42 @@
+import logo from "@/img/logo.png";
 import {
+  LogIn,
+  LogOut,
   Share2,
   Ticket,
   TicketCheck,
   Users,
-  LogIn,
-  LogOut,
 } from "lucide-react";
+import { useState } from "react";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
-import logo from "@/img/logo.png";
+import { Dialog, DialogContent, DialogTrigger } from "./dialog/dialog";
+import { Input } from "./input/Input";
+import { Button } from "./ui/button";
+import z from "zod";
+import { isValidCPF } from "@/utils/validations";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Field, FieldError, FieldLabel } from "./input/Field";
+
+const cpfSchema = z.object({
+  cpf: z.string().refine(isValidCPF, {
+    message: "CPF inválido!",
+  }),
+});
+
+type findCpf = z.infer<typeof cpfSchema>;
 
 const BottomNavBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
+  const [open, setOpen] = useState<boolean>();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<findCpf>({ resolver: zodResolver(cpfSchema) });
 
   // raiz exata
   const isRoot = Boolean(matchPath({ path: "/", end: true }, pathname));
@@ -33,6 +57,11 @@ const BottomNavBar = () => {
         url: window.location.href,
       });
     }
+  };
+
+  const handleOnSubmit = (data: findCpf) => {
+    const { cpf } = data;
+    navigate(`/raffles/${cpf}`);
   };
 
   const handleAuthAction = () => {
@@ -108,7 +137,34 @@ const BottomNavBar = () => {
       "
     >
       <div className="flex flex-col items-center">
-        <TicketCheck className="h-6 w-6" />
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger>
+            <TicketCheck className="h-6 w-6" />
+          </DialogTrigger>
+          <DialogContent>
+            <div className="flex flex-col justify-center">
+              <Field>
+                <FieldLabel>Informe o CPF usado na compra:</FieldLabel>
+
+                <Input {...register("cpf")} />
+
+                {errors.cpf?.message && (
+                  <FieldError>{errors.cpf?.message}</FieldError>
+                )}
+              </Field>
+
+              <Button
+                className="mt-3"
+                onClick={handleSubmit((data) => {
+                  handleOnSubmit(data);
+                  setOpen(false);
+                })}
+              >
+                Confirmar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <span className="text-xs">Minhas Compras</span>
       </div>
       <div className="flex flex-col items-center">

@@ -17,8 +17,10 @@ import { Input } from "./input/Input";
 
 interface IntervalProps {
   onGenerate: (numbers: number[]) => void;
-  max: number;
-  selectedNumbers: Set<string>;
+  max: number; // total de cotas existentes
+  selectedNumbers: Set<string>; // vendidas/reservadas
+  minPurchaseShares?: number;
+  maxPurchaseShares?: number; // limite de compra da rifa
 }
 
 type IntervalFormValues = {
@@ -38,10 +40,11 @@ const DialogInterval = ({
   max,
   onGenerate,
   selectedNumbers,
+  minPurchaseShares = 1,
+  maxPurchaseShares = Number.POSITIVE_INFINITY,
 }: IntervalProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // schema depende de max
   const schema = useMemo(() => {
     return z
       .object({
@@ -98,20 +101,53 @@ const DialogInterval = ({
     return await trigger();
   };
 
+  const availableNumbersInRange = useMemo(() => {
+    const from = Math.min(formValues.de, formValues.ate);
+    const to = Math.max(formValues.de, formValues.ate);
+
+    const nums: number[] = [];
+    for (let i = from; i <= to; i++) {
+      if (!selectedNumbers.has(String(i))) nums.push(i);
+    }
+    return nums;
+  }, [formValues.de, formValues.ate, selectedNumbers]);
+
+  const exceedsMaxPurchase = useMemo(() => {
+    return (
+      Number.isFinite(maxPurchaseShares) &&
+      availableNumbersInRange.length > maxPurchaseShares
+    );
+  }, [availableNumbersInRange.length, maxPurchaseShares]);
+
+  const belowMinPurchase = useMemo(() => {
+    return (
+      availableNumbersInRange.length > 0 &&
+      availableNumbersInRange.length < minPurchaseShares
+    );
+  }, [availableNumbersInRange.length, minPurchaseShares]);
+
   const handleGenerateNumberInterval = async () => {
     const ok = await validateForm();
     if (!ok) return;
 
-    const numbers: number[] = [];
-    for (let i = formValues.de; i <= formValues.ate; i++) {
-      if (!selectedNumbers.has(String(i))) numbers.push(i);
+    // valida regras de compra
+    if (availableNumbersInRange.length === 0) return;
+
+    if (
+      Number.isFinite(maxPurchaseShares) &&
+      availableNumbersInRange.length > maxPurchaseShares
+    ) {
+      return;
     }
 
-    onGenerate(numbers);
+    if (availableNumbersInRange.length < minPurchaseShares) {
+      return;
+    }
+
+    onGenerate(availableNumbersInRange);
     setIsOpen(false);
   };
 
-  // atualiza valores quando max muda (equivalente ao seu handleChange no useEffect)
   useEffect(() => {
     reset({ de: 1, ate: max }, { keepDirty: false, keepTouched: false });
   }, [max, reset]);
@@ -120,7 +156,10 @@ const DialogInterval = ({
     formValues.de < 1 ||
     formValues.ate < 1 ||
     formValues.de > formValues.ate ||
-    formValues.ate > max;
+    formValues.ate > max ||
+    availableNumbersInRange.length === 0 ||
+    exceedsMaxPurchase ||
+    belowMinPurchase;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -130,15 +169,13 @@ const DialogInterval = ({
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            Selecionar cotas entre um intervalo numérico
-          </DialogTitle>
+          <DialogTitle>Selecionar cotas por intervalo</DialogTitle>
           <DialogDescription>
-            Informe sobre qual intervalo deseja selecionar.
+            Informe o intervalo. Serão selecionadas apenas cotas disponíveis.
           </DialogDescription>
         </DialogHeader>
 
-        <div>
+        <div className="space-y-2">
           <Field>
             <FieldLabel htmlFor="de">De:</FieldLabel>
 
@@ -160,7 +197,6 @@ const DialogInterval = ({
 
                 handleChange("de", value);
 
-                // garante consistência (se de > ate, ajusta ate também)
                 if (value > formValues.ate) {
                   handleChange("ate", value);
                 }
@@ -193,7 +229,6 @@ const DialogInterval = ({
 
                 handleChange("ate", value);
 
-                // garante consistência (se ate < de, ajusta de também)
                 if (value < formValues.de) {
                   handleChange("de", value);
                 }
@@ -207,6 +242,39 @@ const DialogInterval = ({
               <FieldError>{errors.ate.message}</FieldError>
             )}
           </Field>
+
+          {/* Feedback UI/UX */}
+          <div className="rounded-md bg-slate-50 border p-3 text-sm space-y-1">
+            <p>
+              Disponíveis no intervalo:{" "}
+              <span className="font-semibold">
+                {availableNumbersInRange.length}
+              </span>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Mín: {minPurchaseShares} • Máx:{" "}
+              {Number.isFinite(maxPurchaseShares) ? maxPurchaseShares : "—"}
+            </p>
+
+            {availableNumbersInRange.length === 0 && (
+              <p className="text-red-600 text-sm">
+                Não há cotas disponíveis nesse intervalo.
+              </p>
+            )}
+
+            {belowMinPurchase && (
+              <p className="text-red-600 text-sm">
+                Intervalo seleciona menos que o mínimo ({minPurchaseShares}).
+              </p>
+            )}
+
+            {exceedsMaxPurchase && (
+              <p className="text-red-600 text-sm">
+                Intervalo excede o máximo permitido ({maxPurchaseShares}).
+                Ajuste a faixa.
+              </p>
+            )}
+          </div>
         </div>
 
         <DialogFooter className="items-center">
@@ -215,7 +283,7 @@ const DialogInterval = ({
             className="mb-4 w-36 h-16"
             onClick={handleGenerateNumberInterval}
           >
-            Confirmar
+            Confirmar seleção
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -37,7 +37,7 @@ const AppRouter = () => {
         />
 
         {/* Lista (recomendado: cpf via querystring /rifas?cpf=...) */}
-        <Route path="/raffles" element={<RifaList />} />
+        <Route path="/raffles/:cpf?" element={<RifaList />} />
       </Routes>
 
       <NavBarWrapper />

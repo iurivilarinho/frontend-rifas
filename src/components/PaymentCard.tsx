@@ -11,11 +11,11 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { usePostReservation } from "@/lib/api/tanstackQuery/reservation";
 import { Reservation } from "@/types/reserva";
 import { Button } from "./button/button";
-import { PagSeguroOrder } from "@/types/pagSeguroOrder";
 import { onlyDigits } from "@/utils/formatters";
 import { Field } from "./input/Field";
 import { Input } from "./input/Input";
 import { UserFormType } from "@/pages/buyer/buyerForm";
+import { MercadoPagoOrder } from "@/types/MercadoPagoOrder";
 
 interface PaymentCardProps {
   totalPrice: number;
@@ -39,8 +39,9 @@ const PaymentCard = ({
 }: PaymentCardProps) => {
   const { mutate: postReservation, isPending } = usePostReservation();
 
-  const [order, setOrder] = useState<PagSeguroOrder | null>(null);
+  const [order, setOrder] = useState<MercadoPagoOrder | null>(null);
   const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const submitForm = () => {
     if (!userData) {
@@ -62,10 +63,10 @@ const PaymentCard = ({
     };
 
     postReservation(reservation, {
-      onSuccess: (data: PagSeguroOrder) => {
+      onSuccess: (data: MercadoPagoOrder) => {
         setOrder(data);
 
-        const expirationIso = data.qr_codes?.[0]?.expiration_date ?? null;
+        const expirationIso = data.date_of_expiration ?? null;
         if (expirationIso) {
           const expirationMs = new Date(expirationIso).getTime();
           setTimeLeftMs(Math.max(0, expirationMs - Date.now()));
@@ -79,11 +80,10 @@ const PaymentCard = ({
     });
   };
 
-  // contador (atualiza 1x por segundo)
   useEffect(() => {
     if (!order) return;
 
-    const expirationIso = order.qr_codes?.[0]?.expiration_date ?? null;
+    const expirationIso = order.date_of_expiration ?? null;
     if (!expirationIso) return;
 
     const expirationMs = new Date(expirationIso).getTime();
@@ -99,16 +99,32 @@ const PaymentCard = ({
     return () => window.clearInterval(intervalId);
   }, [order]);
 
-  const qr = order?.qr_codes?.[0] ?? null;
-
-  const qrPngHref = useMemo(() => {
-    if (!qr) return null;
-    return qr.links.find((l) => l.rel === "QRCODE.PNG")?.href ?? null;
-  }, [qr]);
-
-  const pixCopyPaste = qr?.text ?? "";
+  const pixCopyPaste =
+    order?.point_of_interaction?.transaction_data?.qr_code ?? "";
+  const ticketUrl =
+    order?.point_of_interaction?.transaction_data?.ticket_url ?? null;
+  const qrBase64 =
+    order?.point_of_interaction?.transaction_data?.qr_code_base64 ?? null;
 
   const isExpired = timeLeftMs !== null && timeLeftMs <= 0;
+
+  const qrImgSrc = useMemo(() => {
+    if (!qrBase64) return null;
+    if (qrBase64.startsWith("data:image")) return qrBase64;
+    return `data:image/png;base64,${qrBase64}`;
+  }, [qrBase64]);
+
+  const handleCopy = async () => {
+    if (!pixCopyPaste) return;
+
+    try {
+      await navigator.clipboard.writeText(pixCopyPaste);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch (e) {
+      console.error("Falha ao copiar código PIX:", e);
+    }
+  };
 
   if (isPending) {
     return (
@@ -121,8 +137,8 @@ const PaymentCard = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Opções de Pagamento</CardTitle>
-        <CardDescription>Escolha uma das formas de pagamento</CardDescription>
+        <CardTitle>Pagamento</CardTitle>
+        <CardDescription>Gere a cobrança e pague via Pix</CardDescription>
       </CardHeader>
 
       <CardContent>
@@ -146,67 +162,134 @@ const PaymentCard = ({
             .replace("R$", "")}
         </p>
 
-        {/* some o botão depois que a cobrança foi gerada */}
         {!order && (
           <div className="mt-4">
-            <Button onClick={submitForm} disabled={!userData}>
-              Gerar cobrança PIX
+            <Button
+              onClick={submitForm}
+              disabled={!userData}
+              className="w-full"
+            >
+              Gerar Pix
             </Button>
           </div>
         )}
 
         {order && (
           <>
-            <div className="mt-6">
-              <p className="font-semibold">Tempo para pagar:</p>
-              {timeLeftMs === null ? (
-                <p>Indisponível</p>
-              ) : isExpired ? (
-                <p className="text-red-600">Expirado</p>
-              ) : (
-                <p className="text-lg">{formatMsToMMSS(timeLeftMs)}</p>
+            <div className="mt-6 flex items-center justify-between rounded-md border p-3">
+              <div>
+                <p className="text-sm font-medium">Tempo para pagar</p>
+                {timeLeftMs === null ? (
+                  <p className="text-sm text-muted-foreground">Indisponível</p>
+                ) : isExpired ? (
+                  <p className="text-sm text-red-600">Expirado</p>
+                ) : (
+                  <p className="text-lg font-semibold">
+                    {formatMsToMMSS(timeLeftMs)}
+                  </p>
+                )}
+              </div>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    disabled={(!!qrImgSrc === false && !ticketUrl) || isExpired}
+                    className="shrink-0"
+                  >
+                    Ver QR Code
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent>
+                  {qrImgSrc ? (
+                    <img
+                      src={qrImgSrc}
+                      alt="QR Code PIX"
+                      className="w-full h-auto"
+                    />
+                  ) : ticketUrl ? (
+                    <div className="space-y-3">
+                      <p>Não foi possível carregar a imagem do QR Code.</p>
+                      <a
+                        href={ticketUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                      >
+                        Abrir ticket do Mercado Pago
+                      </a>
+                    </div>
+                  ) : (
+                    <p>QR Code indisponível.</p>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="mt-5">
+              
+              <Field>
+                <div className="relative">
+                  <Input
+                    value={pixCopyPaste}
+                    aria-label="Código Pix copia e cola"
+                    readOnly
+                    className="w-full pr-24"
+                  />
+
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                    <div className="relative">
+                      {/* Balão */}
+                      {copied && (
+                        <div className="absolute -top-10 right-0 z-10">
+                          <div className="relative rounded-md border bg-background px-2 py-1 text-xs shadow-sm">
+                            Copiado
+                            {/* setinha */}
+                            <div className="absolute -bottom-1 right-3 h-2 w-2 rotate-45 border-b border-r bg-background" />
+                          </div>
+                        </div>
+                      )}
+
+                      <Button
+                        type="button"
+                        onClick={handleCopy}
+                        disabled={!pixCopyPaste || isExpired}
+                        className="h-8 px-3"
+                      >
+                        Copiar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Field>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Copie o código e cole no app do seu banco para pagar.
+              </p>
+              {ticketUrl && (
+                <div className="mt-3">
+                  <a
+                    href={ticketUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline text-sm"
+                  >
+                    Abrir link de pagamento
+                  </a>
+                </div>
               )}
             </div>
 
-            <p className="mt-6">QR code para pagamento:</p>
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="mt-3" disabled={!qrPngHref || isExpired}>
-                  Visualizar QR code
-                </Button>
-              </DialogTrigger>
-
-              <DialogContent>
-                {qrPngHref ? (
-                  <img
-                    src={qrPngHref}
-                    alt="QR Code PIX"
-                    className="w-full h-auto"
-                  />
-                ) : (
-                  <p>QR Code indisponível.</p>
-                )}
-              </DialogContent>
-            </Dialog>
-
-            <Field>
-              <Input
-                value={pixCopyPaste}
-                aria-label="Código PIX copia e cola"
-                readOnly
-              />
-            </Field>
-
             {isExpired && (
-              <div className="mt-4">
+              <div className="mt-5">
                 <Button
+                  className="w-full"
                   onClick={() => {
                     setOrder(null);
                     setTimeLeftMs(null);
+                    setCopied(false);
                   }}
                 >
-                  Gerar nova cobrança
+                  Gerar novo Pix
                 </Button>
               </div>
             )}
@@ -215,18 +298,7 @@ const PaymentCard = ({
       </CardContent>
 
       <CardFooter className="w-full flex justify-center p-2">
-        <div className="flex items-center justify-center p-2 rounded">
-          <a
-            href="https://wa.me/+5534996444008"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="items-center rounded px-4 py-1"
-          >
-            <Button disabled={!order || isExpired} onClick={() => {}}>
-              Enviar comprovante de pagamento
-            </Button>
-          </a>
-        </div>
+        <div className="flex items-center justify-center p-2 rounded"></div>
       </CardFooter>
     </Card>
   );

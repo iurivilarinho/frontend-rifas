@@ -30,7 +30,7 @@ const RifaList = () => {
   });
 
   const handleOnClickCard = (id: number | undefined) => {
-    navigate(`/rifa/${id}`);
+    navigate(`/raffle/${id}`);
   };
 
   if (errorRifas || errorCpf)

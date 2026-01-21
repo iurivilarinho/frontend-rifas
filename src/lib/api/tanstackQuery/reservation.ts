@@ -1,7 +1,7 @@
+import { MercadoPagoOrder } from "@/types/MercadoPagoOrder";
+import { Reservation } from "@/types/reserva";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import httpRequest from "../axios/httpRequests";
-import { Reservation } from "@/types/reserva";
-import { PagSeguroOrder } from "@/types/pagSeguroOrder";
 
 const postReservation = async (reservation: Reservation) => {
   const { data } = await httpRequest.post("/reservation", reservation);
@@ -45,7 +45,7 @@ export const useGetReservationById = (id: number | string) => {
 export const usePostReservation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<PagSeguroOrder, unknown, Reservation>({
+  return useMutation<MercadoPagoOrder, unknown, Reservation>({
     mutationFn: postReservation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rifas"] });
