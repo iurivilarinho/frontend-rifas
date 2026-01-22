@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./button/button";
 import PaymentCard from "./PaymentCard";
+import { ShoppingCart } from "lucide-react";
 
 // Importe o schema de validação
 
@@ -73,7 +74,7 @@ const MultiStepForm = ({
             onClick={() => setIsOpen(true)}
             className="mb-4 w-32 h-16"
           >
-            Reservar
+            <ShoppingCart /> Comprar
           </Button>
         </DialogTrigger>
         <DialogContent className="w-full">

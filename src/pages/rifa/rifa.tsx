@@ -1,8 +1,8 @@
 import ButtonRifa from "@/components/button/buttonRifa";
-import DialogInterval from "@/components/dialogInterval";
 import MultiStepForm from "@/components/dialogMultiStep";
-import DialogRandom from "@/components/dialogRandom";
 import DisplayImage from "@/components/image/ImageDisplay";
+import Markdown from "@/components/Markdown";
+import Random from "@/components/Random";
 import {
   Card,
   CardContent,
@@ -23,7 +23,6 @@ import { Rifa } from "@/types/rifa";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import BarraPorgresso from "../../components/barraProgresso";
-import Markdown from "@/components/Markdown";
 
 type SelectionValidation = {
   isValid: boolean;
@@ -233,39 +232,27 @@ const RifaPage = () => {
       <div className="flex justify-center">
         <Card className="w-screen mx-10 mb-10">
           <CardHeader>
-            <CardTitle>
-              <p>Descrição e Regulamento</p>
-            </CardTitle>
-            <CardDescription></CardDescription>
-          </CardHeader>
-          <CardContent className="w-full">
-            <div className="w-full max-h-60 overflow-y-auto rounded-md bg-slate-100 p-4">
-              <Markdown value={dataRifa?.descriptionAward} />
-            </div>
-          </CardContent>
-
-          <CardFooter></CardFooter>
-        </Card>
-      </div>
-
-      <div className="flex justify-center">
-        <Card className="w-screen mx-10 mb-10">
-          <CardHeader>
             <CardTitle></CardTitle>
             <CardDescription></CardDescription>
           </CardHeader>
 
           <CardContent className="flex flex-col items-center justify-center">
-            <div className="flex justify-between w-full">
-              <DialogInterval
+            <div>
+              {/*<DialogInterval
                 max={dataRifa?.quotas.length}
                 onGenerate={handleGeneratedNumbers}
                 selectedNumbers={soldButtons}
                 minPurchaseShares={minPurchaseShares}
                 maxPurchaseShares={maxPurchaseShares}
-              />
-              <p className="mt-5 mx-2">ou</p>
-              <DialogRandom
+              />*/}
+              {/* <DialogRandom
+                onGenerate={handleGeneratedNumbers}
+                numberOfShares={dataRifa?.quotas.length}
+                selectedNumbers={soldButtons}
+                minPurchaseShares={minPurchaseShares}
+                maxPurchaseShares={maxPurchaseShares}
+              />*/}
+              <Random
                 onGenerate={handleGeneratedNumbers}
                 numberOfShares={dataRifa?.quotas.length}
                 selectedNumbers={soldButtons}
@@ -276,9 +263,9 @@ const RifaPage = () => {
 
             {/* Resumo/UX (novo, sem mudar estrutura geral) */}
             <div className="w-full mt-4 rounded-lg border bg-slate-50 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center  justify-center">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-700">
+                  {/* <span className="text-sm font-semibold text-slate-700">
                     Seleção
                   </span>
                   <span className="text-xs rounded-full bg-white border px-2 py-1 text-slate-700">
@@ -287,7 +274,7 @@ const RifaPage = () => {
                   <span className="text-xs rounded-full bg-white border px-2 py-1 text-slate-700">
                     Máx:{" "}
                     {maxPurchaseShares === Infinity ? "∞" : maxPurchaseShares}
-                  </span>
+                  </span> */}
                 </div>
 
                 <div
@@ -383,6 +370,23 @@ const RifaPage = () => {
           </div>
         </div>
       )}
+      <div className="flex justify-center">
+        <Card className="w-screen mx-10 m-10">
+          <CardHeader>
+            <CardTitle>
+              <p>Descrição e Regulamento</p>
+            </CardTitle>
+            <CardDescription></CardDescription>
+          </CardHeader>
+          <CardContent className="w-full">
+            <div className="w-full max-h-60 overflow-y-auto rounded-md bg-slate-100 p-4">
+              <Markdown value={dataRifa?.descriptionAward} />
+            </div>
+          </CardContent>
+
+          <CardFooter></CardFooter>
+        </Card>
+      </div>
     </div>
   );
 };
