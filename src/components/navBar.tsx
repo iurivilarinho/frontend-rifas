@@ -95,7 +95,7 @@ const BottomNavBar = () => {
             onClick={() => navigate("/panel?tab=raffles")}
           >
             <Ticket className="h-5 w-5" />
-            <span className="hidden sm:inline">Rifas</span>
+            <span className="hidden sm:inline">Ações</span>
           </button>
 
           <button

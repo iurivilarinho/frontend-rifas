@@ -49,7 +49,7 @@ const RifaList = () => {
   }
 
   if (!rifas || rifas.length === 0) {
-    return <div>Nenhuma rifa encontrada</div>;
+    return <div>Nenhuma ação encontrada</div>;
   }
 
   return (

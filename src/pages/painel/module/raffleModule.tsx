@@ -102,22 +102,22 @@ const RifasSection = () => {
   }, []);
 
   if (errorRifas) {
-    return <div>Erro ao carregar raffles: {errorRifas.message}</div>;
+    return <div>Erro ao carregar ações: {errorRifas.message}</div>;
   }
 
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Rifas</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Ações</h1>
           <p className="text-sm text-gray-600">
-            Lista de raffles cadastradas e ações rápidas.
+            Lista de ações cadastradas e ações rápidas.
           </p>
         </div>
 
         <Button onClick={onAddRifa} className="h-10">
           <Plus className="mr-2 h-4 w-4" />
-          Adicionar raffle
+          Adicionar ação
         </Button>
       </div>
 

@@ -107,8 +107,8 @@ const RifaForm = () => {
   const isViewMode = formType === "view";
 
   const pageMeta = useMemo(() => {
-    if (formType === "edit") return { title: "Editar Rifa", icon: Pencil };
-    if (formType === "view") return { title: "Visualizar Rifa", icon: Eye };
+    if (formType === "edit") return { title: "Editar Ação", icon: Pencil };
+    if (formType === "view") return { title: "Visualizar Ação", icon: Eye };
     return { title: "Cadastrar Rifa", icon: Plus };
   }, [formType]);
 
@@ -267,7 +267,7 @@ const RifaForm = () => {
               <Field>
                 <FieldLabel htmlFor="description">Descrição</FieldLabel>
                 <Textarea
-                  placeholder="Descrição da rifa"
+                  placeholder="Descrição da ação"
                   {...register("description")}
                   disabled={isViewMode}
                   notification={{
@@ -497,7 +497,7 @@ const RifaForm = () => {
             {!isViewMode && (
               <div className="flex justify-end">
                 <Button type="submit">
-                  {formType === "edit" ? "Editar Rifa" : "Cadastrar Rifa"}
+                  {formType === "edit" ? "Editar Ação" : "Cadastrar Ação"}
                 </Button>
               </div>
             )}

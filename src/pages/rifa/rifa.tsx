@@ -1,7 +1,7 @@
-import ButtonRifa from "@/components/button/buttonRifa";
 import MultiStepForm from "@/components/dialogMultiStep";
 import DisplayImage from "@/components/image/ImageDisplay";
 import Markdown from "@/components/Markdown";
+import { NumberBadge } from "@/components/NumberBadge";
 import Random from "@/components/Random";
 import {
   Card,
@@ -375,11 +375,11 @@ const RifaPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-5 gap-2 overflow-y-auto max-h-96 rounded-lg border bg-white p-3">
+          <div className="grid grid-cols-4 gap-2 overflow-y-auto max-h-96 rounded-lg border bg-white p-3">
             {dataRifa?.quotas.map((cota: Cota) => (
-              <ButtonRifa
+              <NumberBadge
                 key={cota.id}
-                label={cota.number}
+                value={cota.number}
                 onClickSelect={() => handleButtonClick(String(cota.number))}
                 selected={selectedButtons.has(String(cota.number))}
                 sold={cota.sold}

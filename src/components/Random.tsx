@@ -5,6 +5,7 @@ import { Button } from "./button/button";
 import { NumberField } from "./input/numberField";
 import { Card, CardContent } from "./ui/card";
 import { Ticket } from "lucide-react"; // <-- ADD
+import { NumberBadge } from "./NumberBadge";
 
 interface RandomProps {
   numberOfShares: number;
@@ -161,7 +162,6 @@ const Random = ({
               step={1}
             />
 
-
             <Button onClick={handleGenerate}>Gerar</Button>
           </div>
 
@@ -176,12 +176,7 @@ const Random = ({
 
         <div className="flex flex-row flex-wrap p-2 overflow-y-auto max-h-80">
           {randomNumbers.map((number, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-center rounded border ml-1 mt-1 w-8"
-            >
-              <p>{number}</p>
-            </div>
+            <NumberBadge key={index} value={number} />
           ))}
         </div>
       </CardContent>
