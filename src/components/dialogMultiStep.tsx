@@ -20,6 +20,7 @@ interface MultiStepProps {
   quotesSelected: Set<string>;
   disableButton: boolean;
   raffleId: number;
+  showButtonBuy: boolean;
 }
 
 const MultiStepForm = ({
@@ -27,6 +28,7 @@ const MultiStepForm = ({
   quotesSelected,
   totalPrice,
   disableButton,
+  showButtonBuy,
 }: MultiStepProps) => {
   const [activeStep, setActiveStep] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -69,13 +71,15 @@ const MultiStepForm = ({
     <div>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button
-            disabled={disableButton}
-            onClick={() => setIsOpen(true)}
-            className="mb-4 w-32 h-16"
-          >
-            <ShoppingCart /> Comprar
-          </Button>
+          {showButtonBuy && (
+            <Button
+              disabled={disableButton}
+              onClick={() => setIsOpen(true)}
+              className="mb-4 w-32 h-16"
+            >
+              <ShoppingCart /> Comprar
+            </Button>
+          )}
         </DialogTrigger>
         <DialogContent className="w-full">
           <Stepper activeStep={activeStep}>

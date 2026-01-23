@@ -13,6 +13,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const RifaList = () => {
   const { cpf } = useParams();
+  const hasCpf = !!cpf && cpf.trim().length > 0;
+
   const navigate = useNavigate();
 
   const {
@@ -30,7 +32,7 @@ const RifaList = () => {
   });
 
   const handleOnClickCard = (id: number | undefined) => {
-    navigate(`/raffle/${id}`);
+    hasCpf ? navigate(`/raffle/${id}/${cpf}`) : navigate(`/raffle/${id}`);
   };
 
   if (errorRifas || errorCpf)

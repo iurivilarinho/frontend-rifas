@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 interface NumberFieldProps {
   value?: number;
@@ -17,28 +17,41 @@ export const NumberField: React.FC<NumberFieldProps> = ({
 }) => {
   const [internalValue, setInternalValue] = useState<number>(value);
 
+  // ✅ sincroniza com o valor vindo de fora (pai)
+  useEffect(() => {
+    setInternalValue(value);
+  }, [value]);
+
+  const clamp = (v: number) => Math.max(min, Math.min(max, v));
+
   const handleIncrement = () => {
-    if (internalValue < max) {
-      const newValue = internalValue + step;
-      setInternalValue(newValue);
-      onChange?.(newValue);
-    }
+    const next = clamp(internalValue + step);
+    setInternalValue(next);
+    onChange?.(next);
   };
 
   const handleDecrement = () => {
-    if (internalValue > min) {
-      const newValue = internalValue - step;
-      setInternalValue(newValue);
-      onChange?.(newValue);
-    }
+    const next = clamp(internalValue - step);
+    setInternalValue(next);
+    onChange?.(next);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = Number(e.target.value);
-    if (newValue >= min && newValue <= max) {
-      setInternalValue(newValue);
-      onChange?.(newValue);
+    const raw = e.target.value;
+
+    // permite apagar e digitar de novo sem travar
+    if (raw.trim() === "") {
+      setInternalValue(min);
+      onChange?.(min);
+      return;
     }
+
+    const parsed = Number(raw);
+    if (Number.isNaN(parsed)) return;
+
+    const next = clamp(parsed);
+    setInternalValue(next);
+    onChange?.(next);
   };
 
   return (
@@ -50,11 +63,17 @@ export const NumberField: React.FC<NumberFieldProps> = ({
       >
         -
       </button>
+
       <input
+        type="number"
         value={internalValue}
         onChange={handleChange}
+        min={min}
+        max={max}
+        step={step}
         className="w-20 h-11 text-center border border-gray-300 rounded"
       />
+
       <button
         type="button"
         onClick={handleIncrement}

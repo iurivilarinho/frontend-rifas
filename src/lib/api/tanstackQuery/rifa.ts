@@ -25,6 +25,14 @@ const getRifaById = async (id: number | string) => {
   const { data } = await httpRequest.get(`/rifas/${id}`);
   return data;
 };
+
+const getRifaByIdAndBuyerIdentifier = async (
+  id: number | string,
+  identifier: string,
+) => {
+  const { data } = await httpRequest.get(`/rifas/${id}/${identifier}`);
+  return data;
+};
 const getRifaByCpf = async (cpf: number | string) => {
   const { data } = await httpRequest.get(`/rifas/cpf/${cpf}`);
   return data;
@@ -41,6 +49,17 @@ export const useGetRifaById = (id: number | string) => {
   return useQuery({
     queryKey: ["rifas", id],
     queryFn: () => getRifaById(id),
+    enabled: !!id,
+  });
+};
+
+export const useGetRifaByIdAndBuyerIdentifier = (
+  id: number | string,
+  identifier: string,
+) => {
+  return useQuery({
+    queryKey: ["rifas", id],
+    queryFn: () => getRifaByIdAndBuyerIdentifier(id, identifier),
     enabled: !!id,
   });
 };

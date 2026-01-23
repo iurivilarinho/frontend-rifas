@@ -18,7 +18,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useGetRifaById } from "@/lib/api/tanstackQuery/rifa";
+import {
+  useGetRifaById,
+  useGetRifaByIdAndBuyerIdentifier,
+} from "@/lib/api/tanstackQuery/rifa";
 import { Rifa } from "@/types/rifa";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -52,12 +55,13 @@ const validateQuotaSelectionCount = (
 };
 
 const RifaPage = () => {
-  const { raffleId } = useParams();
+  const { raffleId, cpf } = useParams();
 
-  const { data: dataRifa, isLoading: isLoadingRifa } = useGetRifaById(
-    raffleId ?? "",
-  );
+  const hasCpf = !!cpf && cpf.trim().length > 0;
 
+  const { data: dataRifa, isLoading: isLoadingRifa } = hasCpf
+    ? useGetRifaByIdAndBuyerIdentifier(raffleId ?? "", cpf!)
+    : useGetRifaById(raffleId ?? "");
   useEffect(() => {}, [isLoadingRifa]);
 
   const minPurchaseShares = useMemo(
@@ -172,12 +176,7 @@ const RifaPage = () => {
     });
   };
 
-  const totalCotas = dataRifa?.quotas?.length ? dataRifa.quotas.length : 0;
-  const cotasVendidas = dataRifa?.quotas?.length
-    ? dataRifa.quotas.filter((cota: Cota) => cota.sold).length
-    : 0;
-  const porcentagemVendida =
-    cotasVendidas === 0 ? 0 : (cotasVendidas / totalCotas) * 100;
+  const porcentagemVendida = dataRifa?.soldPercentage;
 
   if (isLoadingRifa) {
     return (
@@ -229,43 +228,44 @@ const RifaPage = () => {
         </Card>
       </div>
 
-      <div className="flex justify-center">
-        <Card className="w-screen mx-10 mb-10">
-          <CardHeader>
-            <CardTitle></CardTitle>
-            <CardDescription></CardDescription>
-          </CardHeader>
+      {!hasCpf && (
+        <div className="flex justify-center">
+          <Card className="w-screen mx-10 mb-10">
+            <CardHeader>
+              <CardTitle></CardTitle>
+              <CardDescription></CardDescription>
+            </CardHeader>
 
-          <CardContent className="flex flex-col items-center justify-center">
-            <div>
-              {/*<DialogInterval
+            <CardContent className="flex flex-col items-center justify-center">
+              <div>
+                {/*<DialogInterval
                 max={dataRifa?.quotas.length}
                 onGenerate={handleGeneratedNumbers}
                 selectedNumbers={soldButtons}
                 minPurchaseShares={minPurchaseShares}
                 maxPurchaseShares={maxPurchaseShares}
               />*/}
-              {/* <DialogRandom
+                {/* <DialogRandom
                 onGenerate={handleGeneratedNumbers}
                 numberOfShares={dataRifa?.quotas.length}
                 selectedNumbers={soldButtons}
                 minPurchaseShares={minPurchaseShares}
                 maxPurchaseShares={maxPurchaseShares}
               />*/}
-              <Random
-                onGenerate={handleGeneratedNumbers}
-                numberOfShares={dataRifa?.quotas.length}
-                selectedNumbers={soldButtons}
-                minPurchaseShares={minPurchaseShares}
-                maxPurchaseShares={maxPurchaseShares}
-              />
-            </div>
+                <Random
+                  onGenerate={handleGeneratedNumbers}
+                  numberOfShares={dataRifa?.quotas.length}
+                  selectedNumbers={soldButtons}
+                  minPurchaseShares={minPurchaseShares}
+                  maxPurchaseShares={maxPurchaseShares}
+                />
+              </div>
 
-            {/* Resumo/UX (novo, sem mudar estrutura geral) */}
-            <div className="w-full mt-4 rounded-lg border bg-slate-50 p-4">
-              <div className="flex flex-wrap items-center  justify-center">
-                <div className="flex items-center gap-2">
-                  {/* <span className="text-sm font-semibold text-slate-700">
+              {/* Resumo/UX (novo, sem mudar estrutura geral) */}
+              <div className="w-full mt-4 rounded-lg border bg-slate-50 p-4">
+                <div className="flex flex-wrap items-center  justify-center">
+                  <div className="flex items-center gap-2">
+                    {/* <span className="text-sm font-semibold text-slate-700">
                     Seleção
                   </span>
                   <span className="text-xs rounded-full bg-white border px-2 py-1 text-slate-700">
@@ -275,47 +275,53 @@ const RifaPage = () => {
                     Máx:{" "}
                     {maxPurchaseShares === Infinity ? "∞" : maxPurchaseShares}
                   </span> */}
+                  </div>
+
+                  <div
+                    className={[
+                      "text-xs rounded-full px-3 py-1 border",
+                      selectionValidation.isValid
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : "bg-red-50 text-red-700 border-red-200",
+                    ].join(" ")}
+                  >
+                    {selectionValidation.isValid
+                      ? "Ok para continuar"
+                      : "Ajuste a seleção"}
+                  </div>
                 </div>
 
-                <div
-                  className={[
-                    "text-xs rounded-full px-3 py-1 border",
-                    selectionValidation.isValid
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : "bg-red-50 text-red-700 border-red-200",
-                  ].join(" ")}
-                >
-                  {selectionValidation.isValid
-                    ? "Ok para continuar"
-                    : "Ajuste a seleção"}
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-sm text-slate-700">
+                    Quantidade de Cotas:{" "}
+                    <span className="font-semibold">
+                      {selectedButtons.size}
+                    </span>
+                  </p>
                 </div>
+
+                {selectionError && (
+                  <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3">
+                    <p className="text-sm text-red-700">{selectionError}</p>
+                  </div>
+                )}
               </div>
+            </CardContent>
 
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-sm text-slate-700">
-                  Quantidade de Cotas:{" "}
-                  <span className="font-semibold">{selectedButtons.size}</span>
-                </p>
-              </div>
-
-              {selectionError && (
-                <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3">
-                  <p className="text-sm text-red-700">{selectionError}</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-
-          <CardFooter className="flex items-center justify-center border-t-2 p-3">
-            <p>
-              Valor: R${" "}
-              {totalPrice
-                .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-                .replace("R$", "")}
-            </p>
-          </CardFooter>
-        </Card>
-      </div>
+            <CardFooter className="flex items-center justify-center border-t-2 p-3">
+              <p>
+                Valor: R${" "}
+                {totalPrice
+                  .toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })
+                  .replace("R$", "")}
+              </p>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
 
       <div className="flex flex-col items-center">
         <MultiStepForm
@@ -323,10 +329,11 @@ const RifaPage = () => {
           disableButton={!selectionValidation.isValid}
           quotesSelected={selectedButtons}
           totalPrice={totalPrice}
+          showButtonBuy={!hasCpf}
         />
       </div>
 
-      {dataRifa?.showQuotas && (
+      {(hasCpf || dataRifa?.showQuotas) && (
         <div className="mx-10">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm text-slate-600">
@@ -339,20 +346,32 @@ const RifaPage = () => {
           </div>
 
           {/* Legenda */}
-          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border bg-white p-3">
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm bg-green-500 border" />
-              <span className="text-sm text-slate-700">Vendidas</span>
-            </div>
+          <div className="mb-3 rounded-lg border bg-white p-3">
+            {hasCpf && (
+              <p className="mb-2 text-sm font-semibold text-slate-800">
+                Suas compras
+              </p>
+            )}
 
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm bg-blue-500 border" />
-              <span className="text-sm text-slate-700">Selecionadas</span>
-            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-sm bg-green-500 border" />
+                <span className="text-sm text-slate-700">Vendidas</span>
+              </div>
 
-            <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-sm bg-white border border-slate-300" />
-              <span className="text-sm text-slate-700">Disponíveis</span>
+              {!hasCpf && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-sm bg-blue-500 border" />
+                    <span className="text-sm text-slate-700">Selecionadas</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-sm bg-white border border-slate-300" />
+                    <span className="text-sm text-slate-700">Disponíveis</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

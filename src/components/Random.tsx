@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "./button/button";
 import { NumberField } from "./input/numberField";
 import { Card, CardContent } from "./ui/card";
+import { Ticket } from "lucide-react"; // <-- ADD
 
 interface RandomProps {
   numberOfShares: number;
@@ -25,18 +26,29 @@ const Random = ({
   const [error, setError] = useState<string | null>(null);
 
   const availableCount = useMemo(() => {
-    // quantas cotas estão realmente disponíveis para gerar
     return Math.max(0, numberOfShares - selectedNumbers.size);
   }, [numberOfShares, selectedNumbers.size]);
 
   const effectiveMaxPurchase = useMemo(() => {
-    // limite de compra não pode passar do disponível
     if (!Number.isFinite(maxPurchaseShares)) return availableCount;
     return Math.min(maxPurchaseShares, availableCount);
   }, [maxPurchaseShares, availableCount]);
 
+  const inputMax = useMemo(() => {
+    return Math.max(1, Math.min(numberOfShares, effectiveMaxPurchase || 1));
+  }, [numberOfShares, effectiveMaxPurchase]);
+
+  const clampQty = (value: number) => {
+    const min = Math.max(1, minPurchaseShares);
+    const max = inputMax;
+    return Math.max(min, Math.min(max, value));
+  };
+
+  const addQty = (delta: number) => {
+    setQuantityToGenerate((prev) => clampQty((prev || 0) + delta));
+  };
+
   useEffect(() => {
-    // se o usuário já tinha gerado e o estado externo mudou, revalida
     if (randomNumbers.length === 0) return;
 
     if (
@@ -68,8 +80,6 @@ const Random = ({
     if (msg) return;
 
     const numbers = new Set<number>();
-
-    // safety: evita loop infinito se algo mudar
     const maxTries = numberOfShares * 10;
     let tries = 0;
 
@@ -108,25 +118,54 @@ const Random = ({
         </CardHeader>
 
         <div className="space-y-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => addQty(10)}
+                title="Adicionar 10"
+              >
+                <Ticket className="h-4 w-4" />
+                +10
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => addQty(50)}
+                title="Adicionar 50"
+              >
+                <Ticket className="h-4 w-4" />
+                +50
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => addQty(100)}
+                title="Adicionar 100"
+              >
+                <Ticket className="h-4 w-4" />
+                +100
+              </Button>
+            </div>
             <NumberField
               value={quantityToGenerate}
-              onChange={setQuantityToGenerate}
+              onChange={(v) => setQuantityToGenerate(clampQty(v))}
               min={1}
-              max={Math.max(
-                1,
-                Math.min(numberOfShares, effectiveMaxPurchase || 1),
-              )}
+              max={inputMax}
               step={1}
             />
+
+
             <Button onClick={handleGenerate}>Gerar</Button>
           </div>
 
           <div className="rounded-md bg-slate-50 border p-3 text-sm space-y-1">
-            {/* <p>
-              Disponíveis:{" "}
-              <span className="font-semibold">{availableCount}</span>
-            </p> */}
             <p className="text-xs text-muted-foreground">
               Mín: {minPurchaseShares} • Máx:{" "}
               {Number.isFinite(maxPurchaseShares) ? maxPurchaseShares : "—"}

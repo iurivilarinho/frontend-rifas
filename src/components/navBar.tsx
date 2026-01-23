@@ -17,6 +17,7 @@ import { isValidCPF } from "@/utils/validations";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Field, FieldError, FieldLabel } from "./input/Field";
+import { onlyDigits } from "@/utils/formatters";
 
 const cpfSchema = z.object({
   cpf: z.string().refine(isValidCPF, {
@@ -60,7 +61,7 @@ const BottomNavBar = () => {
   };
 
   const handleOnSubmit = (data: findCpf) => {
-    const { cpf } = data;
+    const cpf = onlyDigits(data.cpf);
     navigate(`/raffles/${cpf}`);
   };
 
@@ -168,7 +169,7 @@ const BottomNavBar = () => {
         <span className="text-xs">Minhas Compras</span>
       </div>
       <div className="flex flex-col items-center">
-        <Ticket onClick={() => navigate("/")} className="h-6 w-6" />
+        <Ticket onClick={() => navigate("/raffles")} className="h-6 w-6" />
         <span className="text-xs">Descobrir</span>
       </div>
       <div className="flex flex-col items-center">

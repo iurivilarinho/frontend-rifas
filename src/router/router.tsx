@@ -30,7 +30,7 @@ const AppRouter = () => {
         <Route path="/user/form/:formType/:userId?" element={<UserForm />} />
 
         {/* Rifa: detalhe separado do form */}
-        <Route path="/raffle/:raffleId" element={<Rifa />} />
+        <Route path="/raffle/:raffleId/:cpf?" element={<Rifa />} />
         <Route
           path="/raffle/form/:formType/:raffleId?"
           element={<RifaForm />}
