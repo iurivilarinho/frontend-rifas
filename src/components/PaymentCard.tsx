@@ -1,25 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+} from "@/components/ui/Card";
 import { usePostReservation } from "@/lib/api/tanstackQuery/reservation";
-import { Reservation } from "@/types/reserva";
-import { Button } from "./button/button";
-import { onlyDigits } from "@/utils/formatters";
-import { Field } from "./input/Field";
-import { Input } from "./input/Input";
 import { UserFormType } from "@/pages/buyer/buyerForm";
 import { MercadoPagoOrder } from "@/types/MercadoPagoOrder";
+import { Reservation } from "@/types/reserva";
+import { onlyDigits } from "@/utils/formatters";
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "./button/button";
+import { Dialog, DialogContent, DialogTrigger } from "./dialog/Dialog";
+import { Field } from "./input/Field";
+import { Input } from "./input/Input";
+import QuotaGrid from "./QuotaGrid";
+import Loading from "./Loading";
 
 interface PaymentCardProps {
   totalPrice: number;
-  quotesSelected: Set<string>;
+  quotesSelected: Set<number>;
   raffleId: number;
   userData: UserFormType | null;
 }
@@ -127,34 +128,17 @@ const PaymentCard = ({
   };
 
   if (isPending) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-16 h-16 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="h-full min-h-0 flex flex-col">
+      <CardHeader className="shrink-0">
         <CardTitle>Pagamento</CardTitle>
         <CardDescription>Gere a cobrança e pague via Pix</CardDescription>
       </CardHeader>
 
-      <CardContent>
-        <p>Confira abaixo as cotas que você está reservando:</p>
-
-        <div className="flex flex-row flex-wrap p-2 overflow-y-auto max-h-28">
-          {Array.from(quotesSelected ?? []).map((number, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-center rounded border ml-1 mt-1 w-8"
-            >
-              <p>{number}</p>
-            </div>
-          ))}
-        </div>
-
+      <CardContent className="flex-1 min-h-0 overflow-y-auto">
         <p className="my-5 font-bold">
           Valor total:
           {totalPrice
@@ -227,7 +211,6 @@ const PaymentCard = ({
             </div>
 
             <div className="mt-5">
-              
               <Field>
                 <div className="relative">
                   <Input
@@ -295,11 +278,12 @@ const PaymentCard = ({
             )}
           </>
         )}
-      </CardContent>
 
-      <CardFooter className="w-full flex justify-center p-2">
-        <div className="flex items-center justify-center p-2 rounded"></div>
-      </CardFooter>
+        <QuotaGrid
+          label="Confira abaixo as seus números para concorrer:"
+          numbers={quotesSelected}
+        />
+      </CardContent>
     </Card>
   );
 };

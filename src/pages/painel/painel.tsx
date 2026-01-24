@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
-import RifasSection from "./module/raffleModule";
-import UsuariosSection from "./module/userModule";
+import ActionModule from "./module/ActionModule";
+import UserModule from "./module/UserModule";
 
 const Painel = () => {
   const [params] = useSearchParams();
@@ -10,8 +10,8 @@ const Painel = () => {
     <div className="min-h-screen bg-white pt-16">
       <div className="h-16" /> {/* spacer para não ficar atrás da navbar */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {menu === "raffles" && <RifasSection />}
-        {menu === "users" && <UsuariosSection />}
+        {menu === "raffles" && <ActionModule />}
+        {menu === "users" && <UserModule />}
       </div>
     </div>
   );

@@ -1,23 +1,34 @@
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import BuyerForm, {
   userFormSchema,
   UserFormType,
 } from "@/pages/buyer/buyerForm";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Step, StepLabel, Stepper } from "@mui/material";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./button/button";
 import PaymentCard from "./PaymentCard";
 import { ShoppingCart } from "lucide-react";
+import {
+  DialogFooter,
+  DialogTrigger,
+  Dialog,
+  DialogContent,
+} from "./dialog/Dialog";
+import { Step, StepLabel, Stepper } from "@mui/material";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
-// Importe o schema de validação
+type StepType = "buyer" | "payment";
 
-const steps = ["Identificar Comprador", "Opções de Pagamento"];
+const stepOrder: StepType[] = ["buyer", "payment"];
+
+const stepLabel: Record<StepType, string> = {
+  buyer: "Identificar Comprador",
+  payment: "Opções de Pagamento",
+};
 
 interface MultiStepProps {
   totalPrice: number;
-  quotesSelected: Set<string>;
+  quotesSelected: Set<number>;
   disableButton: boolean;
   raffleId: number;
   showButtonBuy: boolean;
@@ -30,30 +41,42 @@ const MultiStepForm = ({
   disableButton,
   showButtonBuy,
 }: MultiStepProps) => {
-  const [activeStep, setActiveStep] = useState(0);
+  const [step, setStep] = useState<StepType>("buyer");
   const [isOpen, setIsOpen] = useState(false);
+  const [userData, setUserData] = useState<UserFormType | null>(null);
+
+  const activeStepIndex = useMemo(() => stepOrder.indexOf(step), [step]);
 
   const methods = useForm<UserFormType>({
     resolver: zodResolver(userFormSchema),
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       fullName: "",
+      email: "",
+      cpf: "",
+      numberPhone: "",
     },
   });
 
-  const [userData, setUserData] = useState<UserFormType | null>(null);
+  const goNext = (next: StepType) => setStep(next);
 
-  const handleNext = (data: UserFormType) => {
-    setUserData(data);
-    setActiveStep((prev) => prev + 1);
+  const goBack = () => {
+    const idx = stepOrder.indexOf(step);
+    if (idx <= 0) return;
+    setStep(stepOrder[idx - 1]);
   };
 
-  const handleBack = () => setActiveStep((prev) => prev - 1);
+  const handleNextFromBuyer = (data: UserFormType) => {
+    setUserData(data);
+    goNext("payment");
+  };
 
-  const getStepContent = (step: number) => {
-    switch (step) {
-      case 0:
+  const getStepContent = (current: StepType) => {
+    switch (current) {
+      case "buyer":
         return <BuyerForm form={methods} />;
-      case 1:
+      case "payment":
         return (
           <PaymentCard
             totalPrice={totalPrice}
@@ -63,52 +86,116 @@ const MultiStepForm = ({
           />
         );
       default:
-        return "Etapa desconhecida";
+        return null;
     }
+  };
+
+  const isNextDisabled = step === "buyer" ? !methods.formState.isValid : false;
+
+  const handleNextClick = async () => {
+    const ok = await methods.trigger();
+    if (!ok) return;
+
+    const data = methods.getValues();
+    handleNextFromBuyer(data);
   };
 
   return (
     <div>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          setIsOpen(open);
+          if (!open) {
+            setStep("buyer");
+            setUserData(null);
+            methods.reset();
+          }
+        }}
+      >
         <DialogTrigger asChild>
           {showButtonBuy && (
             <Button
               disabled={disableButton}
               onClick={() => setIsOpen(true)}
-              className="mb-4 w-full h-10  gap-2 "
+              className="mb-4 w-full h-10 gap-2"
             >
               <ShoppingCart />
               Reservar
             </Button>
           )}
         </DialogTrigger>
-        <DialogContent className="w-full">
-          <Stepper activeStep={activeStep}>
-            {steps.map((label, index) => (
-              <Step key={index}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
 
-          <div>{getStepContent(activeStep)}</div>
+        <DialogContent
+          className="
 
-          <div className="flex justify-between">
-            <Button disabled={activeStep === 0} onClick={handleBack}>
-              Voltar
-            </Button>
-            <Button
-              disabled={methods.getValues != null ? false : true}
-              onClick={
-                activeStep === steps.length - 1
-                  ? () => setIsOpen(false)
-                  : methods.handleSubmit(handleNext)
-              }
-              className={activeStep === steps.length - 1 ? " hidden" : ""}
-            >
-              {"Proximo"}
-            </Button>
+    w-full p-0
+    flex flex-col
+    h-[85dvh] max-h-[85dvh]
+    overflow-hidden
+  "
+        >
+          {/* Header */}
+          <div className="shrink-0 px-4 py-4 sm:px-6 border-b bg-background bg">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <DialogTitle className="text-sm text-muted-foreground">
+                  Finalizar reserva
+                </DialogTitle>
+                <h2 className="text-base sm:text-lg font-semibold leading-tight">
+                  {stepLabel[step]}
+                </h2>
+              </div>
+              <div className="text-xs text-muted-foreground whitespace-nowrap">
+                {activeStepIndex + 1}/{stepOrder.length}
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <Stepper
+                activeStep={activeStepIndex}
+                sx={{
+                  "& .MuiStepLabel-label": { fontSize: 12 },
+                  "& .MuiStepIcon-root": { width: 22, height: 22 },
+                }}
+              >
+                {stepOrder.map((key) => (
+                  <Step key={key}>
+                    <StepLabel>{stepLabel[key]}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </div>
           </div>
+
+          {/* Body (rola) */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6">
+            {getStepContent(step)}
+          </div>
+
+          {/* Footer (fixo e sempre visível) */}
+          <DialogFooter
+            className="
+      shrink-0
+      px-4 py-4 sm:px-6
+      border-t bg-background
+      pb-[calc(env(safe-area-inset-bottom)+16px)]
+    "
+          >
+            <div className="flex justify-between w-full">
+              <Button disabled={step === "buyer"} onClick={goBack}>
+                Voltar
+              </Button>
+
+              {step === "buyer" ? (
+                <Button disabled={isNextDisabled} onClick={handleNextClick}>
+                  Próximo
+                </Button>
+              ) : (
+                <Button onClick={() => setIsOpen(false)}>Fechar</Button>
+              )}
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,5 +1,5 @@
-import MultiStepForm from "@/components/dialogMultiStep";
 import DisplayImage from "@/components/image/ImageDisplay";
+import Loading from "@/components/Loading";
 import Markdown from "@/components/Markdown";
 import { NumberBadge } from "@/components/NumberBadge";
 import Random from "@/components/Random";
@@ -10,22 +10,23 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/Card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel";
+} from "@/components/ui/Carousel";
 import {
   useGetRifaById,
   useGetRifaByIdAndBuyerIdentifier,
 } from "@/lib/api/tanstackQuery/rifa";
-import { Rifa } from "@/types/rifa";
+import { Action } from "@/types/Action";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import BarraPorgresso from "../../components/barraProgresso";
+import BarraPorgresso from "../../components/ProgressBar";
+import MultiStepForm from "@/components/DialogMultiStep";
 
 type SelectionValidation = {
   isValid: boolean;
@@ -74,22 +75,24 @@ const RifaPage = () => {
   );
 
   // Estado para gerenciar a seleção dos botões
-  const [selectedButtons, setSelectedButtons] = useState<Set<string>>(
+  const [selectedButtons, setSelectedButtons] = useState<Set<number>>(
     new Set(),
   );
 
-  const [soldButtons, setSoldButtons] = useState<Set<string>>(new Set());
+  const [soldButtons, setSoldButtons] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    if (dataRifa) {
-      const soldNumbers: Set<string> = new Set();
-      (dataRifa as Rifa)?.quotas?.forEach((quota: Cota) => {
-        if (quota.reservationId) {
-          soldNumbers.add(String(quota.number));
-        }
-        setSoldButtons(soldNumbers);
-      });
-    }
+    if (!dataRifa) return;
+
+    const blocked = new Set<number>();
+
+    (dataRifa as Action).quotas?.forEach((quota: Cota) => {
+      if (quota.sold || quota.reservationId != null) {
+        blocked.add(quota.number);
+      }
+    });
+
+    setSoldButtons(blocked);
   }, [dataRifa]);
 
   const [totalPrice, setTotalPrice] = useState(0);
@@ -109,14 +112,14 @@ const RifaPage = () => {
   }, [selectionValidation.message]);
 
   const handleGeneratedNumbers = (numbers: number[]) => {
-    const updated = new Set(numbers.map(String));
+    const updated = new Set(numbers);
 
     setSelectedButtons(updated);
     setTotalPrice((dataRifa?.quotaPrice ?? 0) * updated.size);
   };
 
   // Função para alternar a seleção dos botões (tabela)
-  const handleButtonClick = (label: string) => {
+  const handleButtonClick = (label: number) => {
     // bloqueia se estiver vendida (verde ou qualquer vendida)
     if (soldButtons.has(label)) return;
 
@@ -154,17 +157,13 @@ const RifaPage = () => {
   const porcentagemVendida = dataRifa?.soldPercentage;
 
   if (isLoadingRifa) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-16 h-16 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
     <div>
       <div className="flex justify-center">
-        <Card className="w-screen mx-10 mb-10">
+        <Card className="w-screen mx-5 mb-10">
           <CardHeader>
             <CardTitle>{dataRifa?.title}</CardTitle>
             <CardDescription>{dataRifa?.description}</CardDescription>
@@ -195,7 +194,7 @@ const RifaPage = () => {
 
       {!hasCpf && (
         <div className="flex justify-center">
-          <Card className="w-screen mx-10 mb-10">
+          <Card className="w-screen mx-5 mb-10">
             <CardHeader>
               <CardTitle></CardTitle>
               <CardDescription></CardDescription>
@@ -266,29 +265,23 @@ const RifaPage = () => {
       )}
 
       {(hasCpf || dataRifa?.showQuotas) && (
-        <div className="mx-10">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm text-slate-600">
-              Clique nas cotas disponíveis para selecionar.
-            </p>
-            <p className="text-xs text-slate-500">
-              Selecionadas:{" "}
-              <span className="font-semibold">{selectedButtons.size}</span>
-            </p>
-          </div>
+        <div className="mx-5">
+          <div className="mb-2 flex items-center justify-between"></div>
 
           {/* Legenda */}
           <div className="mb-3 rounded-lg border bg-white p-3">
             {hasCpf && (
               <p className="mb-2 text-sm font-semibold text-slate-800">
-                Suas compras
+                Números com os quais você está concorrendo
               </p>
             )}
 
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-sm bg-green-500 border" />
-                <span className="text-sm text-slate-700">Vendidas</span>
+                <span className="text-sm text-slate-700">
+                  Números atribuídos a você
+                </span>
               </div>
 
               {!hasCpf && (
@@ -312,8 +305,8 @@ const RifaPage = () => {
               <NumberBadge
                 key={cota.id}
                 value={cota.number}
-                onClickSelect={() => handleButtonClick(String(cota.number))}
-                selected={selectedButtons.has(String(cota.number))}
+                onClickSelect={() => handleButtonClick(cota.number)}
+                selected={selectedButtons.has(cota.number)}
                 sold={cota.sold}
                 reservation={cota.reservationId != null}
               />
@@ -322,7 +315,7 @@ const RifaPage = () => {
         </div>
       )}
       <div className="flex justify-center">
-        <Card className="w-screen mx-10 m-10">
+        <Card className="w-screen mx-5 m-10">
           <CardHeader>
             <CardTitle>
               <p>Descrição e Regulamento</p>

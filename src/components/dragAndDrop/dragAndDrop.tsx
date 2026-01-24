@@ -1,5 +1,5 @@
 import { Accept, useDropzone } from "react-dropzone";
-import { Notification, NotificationProps } from "../input/notification";
+import { Notification, NotificationProps } from "../input/Notification";
 import { mergeClasses } from "@/lib/mergeClasses";
 import UploadCloudIcon from "@/assets/icons/uploadCloud";
 import UploadImageIcon from "@/assets/icons/uploadImageIcon";

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
 import { useGetDocumentById } from "@/lib/api/tanstackQuery/document";
 import type { Document } from "@/types/document";
+import { useEffect, useMemo, useState } from "react";
+import Loading from "./Loading";
 
 interface RifaThumbProps {
   documentId?: number;
@@ -21,7 +22,7 @@ function buildImgSrc(doc: Document): string {
   return `data:${doc.contentType};base64,${doc.document}`;
 }
 
-const RifaThumb = ({ documentId, alt, className }: RifaThumbProps) => {
+const ActionThumb = ({ documentId, alt, className }: RifaThumbProps) => {
   const {
     data: doc,
     isLoading,
@@ -68,11 +69,7 @@ const RifaThumb = ({ documentId, alt, className }: RifaThumbProps) => {
 
   return (
     <div className={`relative ${className ?? ""}`}>
-      {showLoader && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-          <div className="w-6 h-6 border-2 border-t-transparent border-blue-500 rounded-full animate-spin" />
-        </div>
-      )}
+      {showLoader && <Loading />}
 
       {/* Mantém o espaço e só mostra quando carregar */}
       <img
@@ -87,4 +84,4 @@ const RifaThumb = ({ documentId, alt, className }: RifaThumbProps) => {
   );
 };
 
-export default RifaThumb;
+export default ActionThumb;

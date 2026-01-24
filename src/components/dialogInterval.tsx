@@ -1,17 +1,17 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "./button/button";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "./button/button";
-import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./dialog/Dialog";
 import { Field, FieldError, FieldLabel } from "./input/Field";
 import { Input } from "./input/Input";
 

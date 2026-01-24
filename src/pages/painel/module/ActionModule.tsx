@@ -1,10 +1,10 @@
-// src/pages/painel/sections/RifasSection.tsx
+// src/pages/painel/sections/ActionsSection.tsx
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus, Pencil, Eye, ShoppingCart } from "lucide-react";
 
-import Loading from "@/components/loading";
+import Loading from "@/components/Loading";
 import { Button } from "@/components/button/button";
 import { TableRoot } from "@/components/table/Table";
 import { TableContent } from "@/components/table/TableContent";
@@ -13,50 +13,50 @@ import {
   type ColumnAction,
 } from "@/components/table/components/TableActionsDropdown";
 
-import { useGetRifa } from "@/lib/api/tanstackQuery/rifa";
-import type { Rifa } from "@/types/rifa";
+import { useGetRifa as useGetAction } from "@/lib/api/tanstackQuery/rifa";
+import { Action } from "@/types/Action";
 
-const RifasSection = () => {
+const ActionModule = () => {
   const navigate = useNavigate();
 
   const {
     data: raffles,
-    isLoading: isLoadingRifas,
-    error: errorRifas,
-  } = useGetRifa();
+    isLoading: isLoadingActions,
+    error: errorActions,
+  } = useGetAction();
 
-  const onAddRifa = () => navigate("/raffle/form/create");
-  const onEditRifa = (raffleId?: number) => {
+  const onAddAction = () => navigate("/raffle/form/create");
+  const onEditAction = (raffleId?: number) => {
     if (!raffleId) return;
     navigate(`/raffle/form/edit/${raffleId}`);
   };
 
-  const onViewRifa = (raffleId?: number) => {
+  const onViewAction = (raffleId?: number) => {
     if (!raffleId) return;
     navigate(`/raffle/form/view/${raffleId}`);
   };
 
-  const onSaleRifa = (raffleId?: number) => {
+  const onSaleAction = (raffleId?: number) => {
     if (!raffleId) return;
     navigate(`/raffle/${raffleId}`);
   };
 
-  const columns: ColumnDef<Rifa, any>[] = useMemo(() => {
+  const columns: ColumnDef<Action, any>[] = useMemo(() => {
     const actions: ColumnAction[] = [
       {
         label: "Editar",
-        onClick: (row) => onEditRifa((row.original as Rifa).id),
+        onClick: (row) => onEditAction((row.original as Action).id),
         icon: <Pencil className="h-4 w-4" />,
       },
       {
         label: "Visualizar",
-        onClick: (row) => onViewRifa((row.original as Rifa).id),
+        onClick: (row) => onViewAction((row.original as Action).id),
         icon: <Eye className="h-4 w-4" />,
       },
 
       {
         label: "Venda",
-        onClick: (row) => onSaleRifa((row.original as Rifa).id),
+        onClick: (row) => onSaleAction((row.original as Action).id),
         icon: <ShoppingCart className="h-4 w-4" />,
       },
     ];
@@ -101,8 +101,8 @@ const RifasSection = () => {
     ];
   }, []);
 
-  if (errorRifas) {
-    return <div>Erro ao carregar ações: {errorRifas.message}</div>;
+  if (errorActions) {
+    return <div>Erro ao carregar ações: {errorActions.message}</div>;
   }
 
   return (
@@ -115,13 +115,13 @@ const RifasSection = () => {
           </p>
         </div>
 
-        <Button onClick={onAddRifa} className="h-10">
+        <Button onClick={onAddAction} className="h-10">
           <Plus className="mr-2 h-4 w-4" />
           Adicionar ação
         </Button>
       </div>
 
-      {isLoadingRifas ? (
+      {isLoadingActions ? (
         <Loading />
       ) : !raffles || raffles.length === 0 ? (
         <div className="border rounded-xl p-6 bg-white text-sm text-gray-700">
@@ -129,7 +129,7 @@ const RifasSection = () => {
         </div>
       ) : (
         <div className="border rounded-xl overflow-hidden bg-white">
-          <TableRoot<Rifa>
+          <TableRoot<Action>
             data={raffles}
             columns={columns}
             tableId="raffles-table"
@@ -143,4 +143,4 @@ const RifasSection = () => {
   );
 };
 
-export default RifasSection;
+export default ActionModule;

@@ -5,7 +5,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./dialog";
+} from "./Dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +15,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "./alertDialog";
+} from "./AlertDialog";
 import { useCustomDialogContext } from "./useCustomDialogContext";
 import { Outlet } from "react-router-dom";
 import { Button } from "../button/button";

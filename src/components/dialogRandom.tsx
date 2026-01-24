@@ -1,14 +1,14 @@
+import { Button } from "./button/button";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "./button/button";
-import { NumberField } from "./input/numberField";
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./dialog/Dialog";
+import { NumberField } from "./input/NumberField";
 import { useEffect, useMemo, useState } from "react";
 
 interface RandomProps {

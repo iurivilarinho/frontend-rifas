@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useGetDocumentById } from "@/lib/api/tanstackQuery/document";
 import type { Document } from "@/types/document";
+import Loading from "../Loading";
 
 interface DisplayImageProps {
   documentId: number;
@@ -77,11 +78,7 @@ const DisplayImage = ({ documentId, alt, className }: DisplayImageProps) => {
     <div
       className={`relative flex justify-center items-center ${className ?? ""}`}
     >
-      {showLoader && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-md">
-          <div className="w-8 h-8 border-4 border-t-transparent border-blue-500 rounded-full animate-spin" />
-        </div>
-      )}
+      {showLoader && <Loading />}
 
       {isError ? (
         <div className="w-80 h-64 flex items-center justify-center bg-slate-200 rounded-md">

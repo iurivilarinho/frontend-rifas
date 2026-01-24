@@ -1,30 +1,30 @@
-import Loading from "@/components/loading";
-import RifaThumb from "@/components/rifasThumb";
+import Loading from "@/components/Loading";
+import ActionThumb from "@/components/ActionThumb";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/Card";
 import { useGetRifa, useGetRifaByCpf } from "@/lib/api/tanstackQuery/rifa";
-import { Rifa } from "@/types/rifa";
 import { useNavigate, useParams } from "react-router-dom";
+import { Action } from "@/types/Action";
 
-const RifaList = () => {
+const ActionList = () => {
   const { cpf } = useParams();
   const hasCpf = !!cpf && cpf.trim().length > 0;
 
   const navigate = useNavigate();
 
   const {
-    data: allRifas,
-    isLoading: isLoadingRifas,
-    error: errorRifas,
+    data: allActions,
+    isLoading: isLoadingActions,
+    error: errorActions,
   } = useGetRifa();
 
   const {
-    data: rifasByCpf,
+    data: actionsByCpf,
     isLoading: isLoadingCpf,
     error: errorCpf,
   } = useGetRifaByCpf(cpf ?? "", {
@@ -35,39 +35,39 @@ const RifaList = () => {
     hasCpf ? navigate(`/raffle/${id}/${cpf}`) : navigate(`/raffle/${id}`);
   };
 
-  if (errorRifas || errorCpf)
+  if (errorActions || errorCpf)
     return (
       <div>
-        Erro ao carregar dados: {errorRifas?.message || errorCpf?.message}
+        Erro ao carregar dados: {errorActions?.message || errorCpf?.message}
       </div>
     );
 
-  const rifas = cpf ? rifasByCpf : allRifas;
+  const actions = cpf ? actionsByCpf : allActions;
 
-  if (isLoadingRifas || isLoadingCpf) {
+  if (isLoadingActions || isLoadingCpf) {
     return <Loading />;
   }
 
-  if (!rifas || rifas.length === 0) {
+  if (!actions || actions.length === 0) {
     return <div>Nenhuma ação encontrada</div>;
   }
 
   return (
     <div>
-      {rifas.map((rifa: Rifa) => {
-        const porcentagemVendida = rifa.soldPercentage;
+      {actions.map((action: Action) => {
+        const porcentagemVendida = action.soldPercentage;
 
         return (
-          <div className="relative my-3" key={rifa.id}>
+          <div className="relative my-3" key={action.id}>
             <Card
-              onClick={() => handleOnClickCard(rifa.id)}
+              onClick={() => handleOnClickCard(action.id)}
               className="relative overflow-hidden flex items-center h-28"
             >
               {/* Imagem na esquerda */}
               <div className="w-28 h-full bg-black/40">
-                <RifaThumb
-                  documentId={rifa.cover.id} // aqui é o ID do documento
-                  alt={rifa.cover.name ?? "Imagem não disponível"}
+                <ActionThumb
+                  documentId={action.cover.id} // aqui é o ID do documento
+                  alt={action.cover.name ?? "Imagem não disponível"}
                   className="w-full h-full object-cover rounded-l"
                 />
               </div>
@@ -80,11 +80,11 @@ const RifaList = () => {
                 ></div>
                 <div className="relative overflow-hidden">
                   <CardHeader className="relative">
-                    <CardTitle className="truncate">{rifa.title}</CardTitle>
+                    <CardTitle className="truncate">{action.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="relative text-sm truncate"></CardContent>
                   <CardFooter className="relative flex justify-between text-xs">
-                    <p>Preço da Cota: {rifa.quotaPrice}</p>
+                    <p>Preço da Cota: {action.quotaPrice}</p>
                     <p>{porcentagemVendida?.toFixed(2)}% vendido</p>
                   </CardFooter>
                 </div>
@@ -97,4 +97,4 @@ const RifaList = () => {
   );
 };
 
-export default RifaList;
+export default ActionList;

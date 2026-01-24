@@ -5,7 +5,7 @@ import React, {
   useContext,
   useState,
 } from "react";
-import CustomDialog from "./customDialog";
+import CustomDialog from "./CustomDialog";
 
 interface CustomDialogContextProps {
   title?: string;

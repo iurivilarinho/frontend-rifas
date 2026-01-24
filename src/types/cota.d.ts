@@ -1,6 +1,6 @@
 interface Cota {
   id: number;
-  number: string;
+  number: number;
   sold: boolean;
   reservationId?: number;
 }

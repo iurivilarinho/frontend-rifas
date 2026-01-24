@@ -1,7 +1,6 @@
-import { boolean } from "zod";
 import { Document } from "./document";
 
-export interface Rifa {
+export interface Action {
   id?: number;
   description: string;
   title: string;

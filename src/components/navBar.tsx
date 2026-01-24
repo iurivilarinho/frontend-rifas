@@ -1,23 +1,24 @@
 import logo from "@/img/logo.png";
+import { onlyDigits } from "@/utils/formatters";
+import { isValidCPF } from "@/utils/validations";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  BookSearch,
   LogIn,
   LogOut,
   Share2,
+  ShoppingCart,
   Ticket,
-  TicketCheck,
   Users,
 } from "lucide-react";
 import { useState } from "react";
-import { matchPath, useLocation, useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogTrigger } from "./dialog/dialog";
-import { Input } from "./input/Input";
-import { Button } from "./ui/button";
-import z from "zod";
-import { isValidCPF } from "@/utils/validations";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { matchPath, useLocation, useNavigate } from "react-router-dom";
+import z from "zod";
+import { Dialog, DialogContent, DialogTrigger } from "./dialog/Dialog";
 import { Field, FieldError, FieldLabel } from "./input/Field";
-import { onlyDigits } from "@/utils/formatters";
+import { Input } from "./input/Input";
+import { Button } from "./button/button";
 
 const cpfSchema = z.object({
   cpf: z.string().refine(isValidCPF, {
@@ -27,7 +28,7 @@ const cpfSchema = z.object({
 
 type findCpf = z.infer<typeof cpfSchema>;
 
-const BottomNavBar = () => {
+const NavBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
@@ -81,9 +82,9 @@ const BottomNavBar = () => {
     return (
       <div className="fixed top-0 left-0 right-0 z-50 bg-green-600 text-white flex items-center justify-between p-4 h-16">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="Golden Ticket" className="w-12 h-auto" />
+          <img src={logo} alt="Golden Book" className="w-12 h-auto" />
           <div className="leading-tight">
-            <p className="font-semibold">Golden Ticket</p>
+            <p className="font-semibold">Golden Book</p>
             <p className="text-xs text-white/90">Painel</p>
           </div>
         </div>
@@ -140,7 +141,7 @@ const BottomNavBar = () => {
       <div className="flex flex-col items-center">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger>
-            <TicketCheck className="h-6 w-6" />
+            <ShoppingCart className="h-6 w-6" />
           </DialogTrigger>
           <DialogContent>
             <div className="flex flex-col justify-center">
@@ -169,7 +170,7 @@ const BottomNavBar = () => {
         <span className="text-xs">Minhas Compras</span>
       </div>
       <div className="flex flex-col items-center">
-        <Ticket onClick={() => navigate("/raffles")} className="h-6 w-6" />
+        <BookSearch onClick={() => navigate("/raffles")} className="h-6 w-6" />
         <span className="text-xs">Descobrir</span>
       </div>
       <div className="flex flex-col items-center">
@@ -180,4 +181,4 @@ const BottomNavBar = () => {
   );
 };
 
-export default BottomNavBar;
+export default NavBar;

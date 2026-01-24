@@ -36,7 +36,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.2.0",
-    "lucide-react": "^0.427.0",
+    "lucide-react": "^0.563.0",
     "pix-qrcode": "^1.0.0",
     "pix-react": "^1.0.4",
     "pix-utils": "^2.6.0",

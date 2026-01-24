@@ -3,7 +3,7 @@ interface BarraProgressoProps {
   label: string;
 }
 
-const BarraProgresso = ({ label, porcentagem }: BarraProgressoProps) => {
+const ProgressBar = ({ label, porcentagem }: BarraProgressoProps) => {
   return (
     <div className="w-full">
       <p className="font-bold">{label}</p>
@@ -17,4 +17,4 @@ const BarraProgresso = ({ label, porcentagem }: BarraProgressoProps) => {
   );
 };
 
-export default BarraProgresso;
+export default ProgressBar;

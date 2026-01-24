@@ -1,24 +1,24 @@
-import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { CardHeader } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./button/button";
-import { CardContent } from "./ui/card";
-import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
+import { CardContent } from "./ui/Card";
 
 interface RandomProps {
   numberOfShares: number;
   onGenerate: (numbers: number[]) => void;
-  selectedNumbers: Set<string>; // vendidas/reservadas
+  selectedNumbers: Set<number>; // vendidas/reservadas
   minPurchaseShares?: number;
   maxPurchaseShares?: number;
   quotaPrice: number;
 }
 
+import { CircleHelp } from "lucide-react";
 import CardPackage, { PackageCard } from "./CardPackage";
 import QuotaGrid from "./QuotaGrid";
-import { NumberField } from "./input/numberField";
-import { CircleHelp } from "lucide-react";
+import { DialogDescription, DialogTitle } from "./dialog/Dialog";
+import { NumberField } from "./input/NumberField";
 
 const PACKAGES: PackageCard[] = [
   {
@@ -156,7 +156,7 @@ const Random = (props: RandomProps) => {
 
     while (numbers.size < quantityToGenerate && tries < maxTries) {
       const n = Math.floor(Math.random() * numberOfShares + 1);
-      if (!selectedNumbers.has(String(n))) numbers.add(n);
+      if (!selectedNumbers.has(n)) numbers.add(n);
       tries++;
     }
 
@@ -220,7 +220,7 @@ const Random = (props: RandomProps) => {
             {/* Conteúdo */}
             <div className="space-y-2">
               <Tooltip
-                title="Se você quer um número específica de numeros para participar do nosso sorteio sobre o produto, veja quantos ebooks comprar."
+                title="Você participa do sorteio ao adquirir e-books. Escolha a quantidade de participações e veja quantos e-books irá adquirir."
                 placement="top"
                 arrow
                 enterTouchDelay={0}

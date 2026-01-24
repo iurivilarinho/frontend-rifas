@@ -2,7 +2,7 @@ import { Button } from "@/components/button/button";
 import { useCustomDialogContext } from "@/components/dialog/useCustomDialogContext";
 import { Field, FieldError, FieldLabel } from "@/components/input/Field";
 import { Input } from "@/components/input/Input";
-import Loading from "@/components/loading";
+import Loading from "@/components/Loading";
 import { useGetCEP } from "@/lib/api/tanstackQuery/cep";
 import {
   useGetUserById,

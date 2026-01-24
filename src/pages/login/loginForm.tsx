@@ -1,6 +1,8 @@
 import { Button } from "@/components/button/button";
 import { Field, FieldError, FieldLabel } from "@/components/input/Field";
 import { Input } from "@/components/input/Input";
+import Loading from "@/components/Loading";
+import cover from "@/img/cover.png";
 import { usePostLogin } from "@/lib/api/tanstackQuery/login";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BadgeCheck, Eye, EyeOff } from "lucide-react";
@@ -8,7 +10,6 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import cover from "@/img/cover.png";
 
 const loginSchema = z.object({
   login: z.string().trim().min(1, "Insira seu login"),
@@ -24,7 +25,7 @@ const LoginForm = () => {
   const headerMeta = useMemo(
     () => ({
       title: "Bem-vindo!",
-      subtitle: "Digite seu login e senha para acessar o Golden Ticket.",
+      subtitle: "Digite seu login e senha para acessar o Golden Book.",
       icon: BadgeCheck,
     }),
     [],
@@ -62,11 +63,7 @@ const LoginForm = () => {
   };
 
   if (isAuthenticationPending) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white">
-        <div className="h-16 w-16 animate-spin rounded-full border-4 border-t-transparent border-green-500" />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
@@ -74,7 +71,7 @@ const LoginForm = () => {
       {/* Imagem de fundo */}
       <img
         src={cover}
-        alt="Golden Ticket"
+        alt="Golden Book"
         className="absolute inset-0 h-full w-full object-cover"
         draggable={false}
       />

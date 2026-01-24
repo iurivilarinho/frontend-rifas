@@ -4,13 +4,13 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/button/button";
-import Loading from "@/components/loading";
-import { TableRoot } from "@/components/table/Table";
-import { TableContent } from "@/components/table/TableContent";
+import Loading from "@/components/Loading";
 import {
   TableActionsDropdown,
   type ColumnAction,
 } from "@/components/table/components/TableActionsDropdown";
+import { TableRoot } from "@/components/table/Table";
+import { TableContent } from "@/components/table/TableContent";
 
 // ajuste para o hook real do seu projeto (nome/caminho)
 import {
@@ -21,7 +21,7 @@ import { useGetUser } from "@/lib/api/tanstackQuery/user";
 import { PageResponse } from "@/types/PageReseponse";
 import { User } from "@/types/user";
 
-const UsuariosSection = () => {
+const UserModule = () => {
   const navigate = useNavigate();
 
   // Spring Page é 0-based (number: 0 é a primeira)
@@ -40,10 +40,10 @@ const UsuariosSection = () => {
 
   const users = data?.content ?? [];
 
-  const onAddUser = () => navigate("/pessoa/form/create");
+  const onAddUser = () => navigate("/user/form/create");
   const onEditUser = (userId?: number) => {
     if (!userId) return;
-    navigate(`/pessoa/form/edit/${userId}`);
+    navigate(`/user/form/edit/${userId}`);
   };
 
   const columns: ColumnDef<User, any>[] = useMemo(() => {
@@ -170,4 +170,4 @@ const UsuariosSection = () => {
   );
 };
 
-export default UsuariosSection;
+export default UserModule;

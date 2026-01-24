@@ -1,5 +1,5 @@
 import { Button } from "@/components/button/button";
-import { Command, CommandItem, CommandList } from "@/components/ui/command";
+import { Command, CommandItem, CommandList } from "@/components/ui/Command";
 import {
   Sheet,
   SheetContent,
@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "@/components/ui/Sheet";
 import {
   HeartHandshake,
   ShieldCheck,
@@ -50,11 +50,7 @@ const Home = () => {
               <div>
                 <SheetHeader className="mb-8">
                   <SheetTitle className="flex justify-center items-center">
-                    <img
-                      src={logo}
-                      alt="Golden Ticket"
-                      className="w-36 h-auto"
-                    />
+                    <img src={logo} alt="Golden Book" className="w-36 h-auto" />
                   </SheetTitle>
                   <SheetDescription>
                     Sorteios beneficentes com transparência: você participa, a
@@ -121,9 +117,9 @@ const Home = () => {
         {/* Desktop navbar */}
         <div className="hidden sm:flex flex-row items-center justify-between w-full max-w-6xl">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Golden Ticket" className="w-16 h-auto" />
+            <img src={logo} alt="Golden Book" className="w-16 h-auto" />
             <div className="leading-tight">
-              <p className="font-semibold">Golden Ticket</p>
+              <p className="font-semibold">Golden Book</p>
               <p className="text-xs text-white/90">Sorteios beneficentes</p>
             </div>
           </div>
@@ -193,8 +189,8 @@ const Home = () => {
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900">
-              Golden Ticket: sorteios beneficentes com transparência do início
-              ao fim
+              Golden Book: sorteios beneficentes com transparência do início ao
+              fim
             </h1>
 
             <p className="text-gray-700 leading-relaxed">
@@ -355,7 +351,7 @@ const Home = () => {
 
           <div className="border rounded-xl p-6">
             <p className="text-gray-700 leading-relaxed">
-              A Golden Ticket realiza sorteios com finalidade beneficente. O
+              A Golden Book realiza sorteios com finalidade beneficente. O
               objetivo é conectar participantes a campanhas que apoiam causas e
               instituições, com foco em organização e transparência.
             </p>
@@ -462,16 +458,16 @@ const Home = () => {
       <footer className="px-6 py-10 border-t">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="Golden Ticket" className="w-12 h-auto" />
+            <img src={logo} alt="Golden Book" className="w-12 h-auto" />
             <div>
-              <p className="font-semibold text-gray-900">Golden Ticket</p>
+              <p className="font-semibold text-gray-900">Golden Book</p>
               <p className="text-sm text-gray-600">Sorteios beneficentes</p>
             </div>
           </div>
 
           <div className="text-sm text-gray-600">
             <p>
-              © {new Date().getFullYear()} Golden Ticket. Todos os direitos
+              © {new Date().getFullYear()} Golden Book. Todos os direitos
               reservados.
             </p>
             <p className="mt-1">
