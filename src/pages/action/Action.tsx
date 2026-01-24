@@ -315,7 +315,7 @@ const RifaPage = () => {
         </div>
       )}
       <div className="flex justify-center">
-        <Card className="w-screen mx-5 m-10">
+        <Card className="w-screen m-5">
           <CardHeader>
             <CardTitle>
               <p>Descrição e Regulamento</p>
