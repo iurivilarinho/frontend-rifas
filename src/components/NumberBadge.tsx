@@ -1,5 +1,5 @@
-type NumberBadgeProps = {
-  value: number | string;
+export type NumberBadgeProps = {
+  value?: number | string;
   digits?: number; // default: 7
   className?: string;
 

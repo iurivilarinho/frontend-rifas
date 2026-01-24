@@ -95,7 +95,6 @@ const RifaPage = () => {
   const [totalPrice, setTotalPrice] = useState(0);
 
   // UX/Validação (novo)
-  const [selectionError, setSelectionError] = useState<string | null>(null);
 
   const selectionValidation = useMemo(() => {
     return validateQuotaSelectionCount(
@@ -107,7 +106,6 @@ const RifaPage = () => {
 
   useEffect(() => {
     // mantém a mensagem sincronizada conforme o usuário marca/desmarca
-    setSelectionError(selectionValidation.message);
   }, [selectionValidation.message]);
 
   const handleGeneratedNumbers = (numbers: number[]) => {
@@ -119,7 +117,6 @@ const RifaPage = () => {
       minPurchaseShares,
       maxPurchaseShares,
     );
-    setSelectionError(v.message);
 
     setSelectedButtons(updated);
     setTotalPrice((dataRifa?.quotaPrice ?? 0) * updated.size);
@@ -143,7 +140,6 @@ const RifaPage = () => {
           minPurchaseShares,
           maxPurchaseShares,
         );
-        setSelectionError(v.message);
 
         return updated;
       }
@@ -158,7 +154,6 @@ const RifaPage = () => {
 
       // regra prática: bloqueia apenas se estourar o máximo
       if (!vNext.isValid && nextCount > maxPurchaseShares) {
-        setSelectionError(vNext.message);
         return updated; // não adiciona
       }
 
@@ -170,7 +165,6 @@ const RifaPage = () => {
         minPurchaseShares,
         maxPurchaseShares,
       );
-      setSelectionError(v.message);
 
       return updated;
     });
@@ -218,16 +212,6 @@ const RifaPage = () => {
         </Card>
       </div>
 
-      <div className="flex justify-center">
-        <Card className="w-screen mx-10 mb-10 bg-white rounded-lg shadow-lg">
-          <CardContent className="flex justify-center items-center mt-3">
-            <p className="w-full text-center text-2xl font-extrabold text-red-600">
-              Por Apenas R$ {dataRifa.quotaPrice ?? 0} !
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
       {!hasCpf && (
         <div className="flex justify-center">
           <Card className="w-screen mx-10 mb-10">
@@ -258,80 +242,47 @@ const RifaPage = () => {
                   selectedNumbers={soldButtons}
                   minPurchaseShares={minPurchaseShares}
                   maxPurchaseShares={maxPurchaseShares}
+                  quotaPrice={dataRifa?.quotaPrice}
                 />
               </div>
 
               {/* Resumo/UX (novo, sem mudar estrutura geral) */}
-              <div className="w-full mt-4 rounded-lg border bg-slate-50 p-4">
-                <div className="flex flex-wrap items-center  justify-center">
-                  <div className="flex items-center gap-2">
-                    {/* <span className="text-sm font-semibold text-slate-700">
-                    Seleção
-                  </span>
-                  <span className="text-xs rounded-full bg-white border px-2 py-1 text-slate-700">
-                    Mín: {minPurchaseShares}
-                  </span>
-                  <span className="text-xs rounded-full bg-white border px-2 py-1 text-slate-700">
-                    Máx:{" "}
-                    {maxPurchaseShares === Infinity ? "∞" : maxPurchaseShares}
-                  </span> */}
-                  </div>
-
-                  <div
-                    className={[
-                      "text-xs rounded-full px-3 py-1 border",
-                      selectionValidation.isValid
-                        ? "bg-green-50 text-green-700 border-green-200"
-                        : "bg-red-50 text-red-700 border-red-200",
-                    ].join(" ")}
-                  >
-                    {selectionValidation.isValid
-                      ? "Ok para continuar"
-                      : "Ajuste a seleção"}
-                  </div>
-                </div>
-
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-sm text-slate-700">
-                    Quantidade de Cotas:{" "}
-                    <span className="font-semibold">
-                      {selectedButtons.size}
-                    </span>
-                  </p>
-                </div>
-
-                {selectionError && (
-                  <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3">
-                    <p className="text-sm text-red-700">{selectionError}</p>
-                  </div>
-                )}
-              </div>
             </CardContent>
 
-            <CardFooter className="flex items-center justify-center border-t-2 p-3">
-              <p>
-                Valor: R${" "}
-                {totalPrice
-                  .toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })
-                  .replace("R$", "")}
-              </p>
+            <CardFooter className="border-t-2 p-4">
+              <div className="w-full">
+                {/* Linha 1: Total (sempre em cima, no desktop também) */}
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold text-foreground">
+                    Total:
+                  </span>
+                  <span className="text-lg font-bold text-foreground">
+                    {totalPrice > 0
+                      ? totalPrice.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })
+                      : "-"}
+                  </span>
+                </div>
+
+                {/* Linha 2: Botão (sempre embaixo; no mobile centralizado, no desktop full) */}
+                <div className="mt-4 flex w-full justify-center md:justify-stretch">
+                  <div className="w-[85%] max-w-[420px] md:w-full md:max-w-none">
+                    <MultiStepForm
+                      raffleId={dataRifa?.id}
+                      disableButton={!selectionValidation.isValid}
+                      quotesSelected={selectedButtons}
+                      totalPrice={totalPrice}
+                      showButtonBuy={!hasCpf}
+                    />
+                  </div>
+                </div>
+              </div>
             </CardFooter>
           </Card>
         </div>
       )}
-
-      <div className="flex flex-col items-center">
-        <MultiStepForm
-          raffleId={dataRifa?.id}
-          disableButton={!selectionValidation.isValid}
-          quotesSelected={selectedButtons}
-          totalPrice={totalPrice}
-          showButtonBuy={!hasCpf}
-        />
-      </div>
 
       {(hasCpf || dataRifa?.showQuotas) && (
         <div className="mx-10">

@@ -75,9 +75,10 @@ const MultiStepForm = ({
             <Button
               disabled={disableButton}
               onClick={() => setIsOpen(true)}
-              className="mb-4 w-32 h-16"
+              className="mb-4 w-full h-10  gap-2 "
             >
-              <ShoppingCart /> Reservar
+              <ShoppingCart />
+              Reservar
             </Button>
           )}
         </DialogTrigger>
