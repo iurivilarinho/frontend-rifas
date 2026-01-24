@@ -3,6 +3,8 @@ import { CardHeader } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./button/button";
 import { CardContent } from "./ui/card";
+import Tooltip from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
 
 interface RandomProps {
   numberOfShares: number;
@@ -16,6 +18,7 @@ interface RandomProps {
 import CardPackage, { PackageCard } from "./CardPackage";
 import QuotaGrid from "./QuotaGrid";
 import { NumberField } from "./input/numberField";
+import { CircleHelp } from "lucide-react";
 
 const PACKAGES: PackageCard[] = [
   {
@@ -65,6 +68,12 @@ const Random = (props: RandomProps) => {
     () => Math.max(0, numberOfShares - selectedNumbers.size),
     [numberOfShares, selectedNumbers.size],
   );
+
+  const resetGeneratedSelection = () => {
+    setRandomNumbers([]);
+    setError(null);
+    onGenerate([]); // <-- limpa o estado no pai (selectedButtons)
+  };
 
   const effectiveMaxPurchase = useMemo(() => {
     if (!Number.isFinite(maxPurchaseShares)) return availableCount;
@@ -118,8 +127,7 @@ const Random = (props: RandomProps) => {
   const selectPackage = (qty: number, id: string) => {
     setSelectedPkgId(id);
     setQuantityToGenerate(clampQty(qty));
-    setRandomNumbers([]);
-    setError(null);
+    resetGeneratedSelection();
   };
 
   const validateQuantity = (qty: number) => {
@@ -211,27 +219,36 @@ const Random = (props: RandomProps) => {
 
             {/* Conteúdo */}
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground text-justify">
-                Se você quer um número específica de numeros para participar do
-                nosso sorteio sobre o produto, veja quantos ebooks comprar.
-              </p>
-
-              <p className="text-xs text-muted-foreground text-justify leading-relaxed">
-                {quantityToGenerate > 0
-                  ? `A cada 5 números = 1 ebook • Para ${quantityToGenerate} números: ${ebooksForNumbers} ebook(s).`
-                  : "A cada 5 números = 1 ebook."}
-              </p>
+              <Tooltip
+                title="Se você quer um número específica de numeros para participar do nosso sorteio sobre o produto, veja quantos ebooks comprar."
+                placement="top"
+                arrow
+                enterTouchDelay={0}
+                leaveTouchDelay={4000}
+              >
+                <div className="flex flex-row  items-center">
+                  <IconButton size="small" aria-label="Informações">
+                    <CircleHelp fontSize="inherit" />
+                  </IconButton>
+                  <p className="text-xs text-muted-foreground text-justify leading-relaxed">
+                    {quantityToGenerate > 0
+                      ? `A cada 5 números = 1 ebook • Para ${quantityToGenerate} números: ${ebooksForNumbers} ebook(s).`
+                      : "A cada 5 números = 1 ebook."}
+                  </p>
+                </div>
+              </Tooltip>
 
               <NumberField
                 value={quantityToGenerate}
                 onChange={(v) => {
                   setSelectedPkgId(null);
-                  setRandomNumbers([]);
 
                   const next = clampQty(v);
                   setQuantityToGenerate(next);
 
-                  // valida e mostra mensagem imediatamente quando a pessoa digita
+                  // qualquer mudança invalida a geração anterior
+                  resetGeneratedSelection();
+
                   const msg = validateQuantity(next);
                   setError(msg);
                 }}

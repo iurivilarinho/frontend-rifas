@@ -111,13 +111,6 @@ const RifaPage = () => {
   const handleGeneratedNumbers = (numbers: number[]) => {
     const updated = new Set(numbers.map(String));
 
-    // Não mexe nas validações dos dialogs, mas aqui garantimos consistência visual/submit
-    const v = validateQuotaSelectionCount(
-      updated.size,
-      minPurchaseShares,
-      maxPurchaseShares,
-    );
-
     setSelectedButtons(updated);
     setTotalPrice((dataRifa?.quotaPrice ?? 0) * updated.size);
   };
@@ -134,12 +127,6 @@ const RifaPage = () => {
       if (updated.has(label)) {
         updated.delete(label);
         setTotalPrice((dataRifa?.quotaPrice ?? 0) * updated.size);
-
-        const v = validateQuotaSelectionCount(
-          updated.size,
-          minPurchaseShares,
-          maxPurchaseShares,
-        );
 
         return updated;
       }
@@ -159,12 +146,6 @@ const RifaPage = () => {
 
       updated.add(label);
       setTotalPrice((dataRifa?.quotaPrice ?? 0) * updated.size);
-
-      const v = validateQuotaSelectionCount(
-        updated.size,
-        minPurchaseShares,
-        maxPurchaseShares,
-      );
 
       return updated;
     });
