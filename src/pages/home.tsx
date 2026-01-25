@@ -9,7 +9,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/Sheet";
 import {
-  HeartHandshake,
   ShieldCheck,
   Ticket,
   Menu,
@@ -18,6 +17,9 @@ import {
   UserRoundCheck,
   Sparkles,
   BadgeCheck,
+  BookOpen,
+  Download,
+  Gift,
 } from "lucide-react";
 import logo from "@/img/logo.png";
 import { useNavigate } from "react-router-dom";
@@ -53,8 +55,9 @@ const Home = () => {
                     <img src={logo} alt="Golden Book" className="w-36 h-auto" />
                   </SheetTitle>
                   <SheetDescription>
-                    Sorteios beneficentes com transparência: você participa, a
-                    causa recebe, e todo mundo acompanha.
+                    Ebooks práticos + acesso imediato. Ao comprar, você recebe
+                    números vinculados ao seu pedido para participar de
+                    campanhas de prêmios.
                   </SheetDescription>
                 </SheetHeader>
 
@@ -70,18 +73,18 @@ const Home = () => {
 
                     <CommandItem
                       className="flex items-center space-x-2 cursor-pointer"
-                      onSelect={() => scrollTo("transparencia")}
+                      onSelect={() => scrollTo("ebooks")}
                     >
-                      <ShieldCheck />
-                      <p>Transparência</p>
+                      <BookOpen />
+                      <p>Ebooks</p>
                     </CommandItem>
 
                     <CommandItem
                       className="flex items-center space-x-2 cursor-pointer"
-                      onSelect={() => scrollTo("beneficente")}
+                      onSelect={() => scrollTo("seguranca")}
                     >
-                      <HeartHandshake />
-                      <p>Impacto beneficente</p>
+                      <ShieldCheck />
+                      <p>Segurança</p>
                     </CommandItem>
 
                     <CommandItem
@@ -120,7 +123,9 @@ const Home = () => {
             <img src={logo} alt="Golden Book" className="w-16 h-auto" />
             <div className="leading-tight">
               <p className="font-semibold">Golden Book</p>
-              <p className="text-xs text-white/90">Sorteios beneficentes</p>
+              <p className="text-xs text-white/90">
+                Ebooks com acesso imediato
+              </p>
             </div>
           </div>
 
@@ -137,19 +142,19 @@ const Home = () => {
             <button
               type="button"
               className="flex items-center gap-2 hover:underline"
-              onClick={() => scrollTo("transparencia")}
+              onClick={() => scrollTo("ebooks")}
             >
-              <ShieldCheck className="h-4 w-4" />
-              <span>Transparência</span>
+              <BookOpen className="h-4 w-4" />
+              <span>Ebooks</span>
             </button>
 
             <button
               type="button"
               className="flex items-center gap-2 hover:underline"
-              onClick={() => scrollTo("beneficente")}
+              onClick={() => scrollTo("seguranca")}
             >
-              <HeartHandshake className="h-4 w-4" />
-              <span>Impacto</span>
+              <ShieldCheck className="h-4 w-4" />
+              <span>Segurança</span>
             </button>
 
             <button
@@ -184,25 +189,26 @@ const Home = () => {
             <div className="inline-flex items-center gap-2 bg-white border border-green-200 rounded-full px-3 py-1 w-fit">
               <Sparkles className="h-4 w-4 text-green-700" />
               <span className="text-sm text-green-800">
-                Participação simples. Impacto real.
+                Conteúdo útil + bônus em campanhas de prêmios
               </span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900">
-              Golden Book: sorteios beneficentes com transparência do início ao
-              fim
+              Ebooks que você usa de verdade — e ainda participa de campanhas
+              especiais
             </h1>
 
             <p className="text-gray-700 leading-relaxed">
-              Realizamos sorteios para apoiar causas e instituições. Você compra
-              suas cotas, acompanha tudo com clareza e ajuda a transformar
-              contribuições em resultados.
+              Aqui você encontra ebooks digitais com acesso imediato. Ao
+              finalizar a compra, seu pedido gera números vinculados ao seu
+              cadastro — eles entram nas campanhas de prêmios ativas, conforme
+              regras e datas publicadas.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button onClick={() => scrollTo("conta")} className="h-12">
-                <NotebookPen className="mr-2 h-4 w-4" />
-                Criar conta
+              <Button onClick={() => scrollTo("ebooks")} className="h-12">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Ver ebooks
               </Button>
               <Button
                 variant="outline"
@@ -210,18 +216,18 @@ const Home = () => {
                 className="h-12"
               >
                 <Ticket className="mr-2 h-4 w-4" />
-                Ver como funciona
+                Entender a dinâmica
               </Button>
             </div>
 
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-2">
-                <BadgeCheck className="h-4 w-4 text-green-700" />
-                <span>Regras e resultados publicados</span>
+                <Download className="h-4 w-4 text-green-700" />
+                <span>Entrega digital imediata</span>
               </div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-green-700" />
-                <span>Processo auditável</span>
+                <BadgeCheck className="h-4 w-4 text-green-700" />
+                <span>Regras e datas publicadas</span>
               </div>
             </div>
           </div>
@@ -230,31 +236,36 @@ const Home = () => {
             <h2 className="text-lg font-semibold text-gray-900 mb-3">
               O que você encontra aqui
             </h2>
+
             <ul className="space-y-3 text-gray-700">
               <li className="flex gap-3">
-                <Ticket className="h-5 w-5 text-green-700" />
+                <BookOpen className="h-5 w-5 text-green-700" />
                 <span>
-                  Sorteios organizados por campanha, com cotas e prazos.
+                  Ebooks em categorias práticas: aprendizado, produtividade e
+                  guias.
                 </span>
               </li>
               <li className="flex gap-3">
-                <HeartHandshake className="h-5 w-5 text-green-700" />
+                <Download className="h-5 w-5 text-green-700" />
                 <span>
-                  Campanhas beneficentes com objetivo e destino claros.
+                  Acesso imediato após a confirmação do pedido, direto na sua
+                  conta.
                 </span>
               </li>
               <li className="flex gap-3">
-                <ShieldCheck className="h-5 w-5 text-green-700" />
+                <Gift className="h-5 w-5 text-green-700" />
                 <span>
-                  Transparência: regras, números, status e resultados.
+                  Números gerados no pedido para entrar nas campanhas de prêmios
+                  ativas.
                 </span>
               </li>
             </ul>
 
             <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
               <p className="text-sm text-green-900">
-                Dica: se você é organizador, use o painel para publicar regras,
-                acompanhar vendas e registrar o resultado do sorteio.
+                Você compra pelo conteúdo. Os números são um benefício extra do
+                pedido e ficam registrados para consulta quando houver campanha
+                em andamento.
               </p>
             </div>
           </div>
@@ -271,114 +282,132 @@ const Home = () => {
           <div className="grid gap-6 sm:grid-cols-3">
             <div className="border rounded-xl p-6">
               <div className="flex items-center gap-2 mb-2">
+                <BookOpen className="h-5 w-5 text-green-700" />
+                <h3 className="font-semibold text-gray-900">
+                  1) Escolha seu ebook
+                </h3>
+              </div>
+              <p className="text-gray-700">
+                Navegue pelo catálogo e selecione o conteúdo que faz sentido
+                para você.
+              </p>
+            </div>
+
+            <div className="border rounded-xl p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Download className="h-5 w-5 text-green-700" />
+                <h3 className="font-semibold text-gray-900">
+                  2) Finalize e receba
+                </h3>
+              </div>
+              <p className="text-gray-700">
+                Após a confirmação, o acesso fica disponível na sua conta para
+                baixar e usar.
+              </p>
+            </div>
+
+            <div className="border rounded-xl p-6">
+              <div className="flex items-center gap-2 mb-2">
                 <Ticket className="h-5 w-5 text-green-700" />
                 <h3 className="font-semibold text-gray-900">
-                  1) Escolha a campanha
+                  3) Números do seu pedido
                 </h3>
               </div>
               <p className="text-gray-700">
-                Veja as campanhas disponíveis, regras, prazos e o objetivo
-                beneficente.
+                Seu pedido gera números vinculados ao cadastro. Quando houver
+                campanhas ativas, eles entram automaticamente conforme as regras
+                publicadas.
               </p>
             </div>
+          </div>
 
-            <div className="border rounded-xl p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <UserRoundCheck className="h-5 w-5 text-green-700" />
-                <h3 className="font-semibold text-gray-900">
-                  2) Participe com cotas
-                </h3>
+          <div className="mt-6 border rounded-xl p-6 bg-gray-50">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="h-5 w-5 text-green-700 mt-1" />
+              <div>
+                <p className="font-semibold text-gray-900">Tudo registrado</p>
+                <p className="text-gray-700">
+                  Você consegue consultar seus pedidos, downloads e os números
+                  vinculados, além do status e datas das campanhas quando
+                  disponíveis.
+                </p>
               </div>
-              <p className="text-gray-700">
-                Selecione suas cotas disponíveis e finalize a participação
-                conforme as regras da campanha.
-              </p>
-            </div>
-
-            <div className="border rounded-xl p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck className="h-5 w-5 text-green-700" />
-                <h3 className="font-semibold text-gray-900">
-                  3) Acompanhe o resultado
-                </h3>
-              </div>
-              <p className="text-gray-700">
-                Publicamos status, apurações e resultados. Transparência do
-                começo ao fim.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Transparência */}
-      <section id="transparencia" className="px-6 py-12 bg-gray-50">
+      {/* Ebooks */}
+      <section id="ebooks" className="px-6 py-12 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Ebooks</h2>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div className="border bg-white rounded-xl p-6">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Guias práticos
+              </h3>
+              <p className="text-gray-700">
+                Conteúdo direto ao ponto, passo a passo, para aplicação
+                imediata.
+              </p>
+            </div>
+
+            <div className="border bg-white rounded-xl p-6">
+              <h3 className="font-semibold text-gray-900 mb-2">Aprendizado</h3>
+              <p className="text-gray-700">
+                Materiais para evoluir em temas específicos com exemplos e
+                exercícios.
+              </p>
+            </div>
+
+            <div className="border bg-white rounded-xl p-6">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Produtividade
+              </h3>
+              <p className="text-gray-700">
+                Métodos, checklists e rotinas para organizar e ganhar
+                consistência.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 p-6 border rounded-xl bg-white">
+            <p className="text-gray-700 leading-relaxed">
+              O catálogo pode variar ao longo do tempo. Dentro da sua conta você
+              encontra histórico de compras e acesso aos downloads.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Segurança */}
+      <section id="seguranca" className="px-6 py-12">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Transparência
+            Segurança
           </h2>
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="border bg-white rounded-xl p-6">
               <h3 className="font-semibold text-gray-900 mb-2">
-                Regras claras
+                Compra e acesso
               </h3>
               <p className="text-gray-700">
-                Cada campanha deve ter regras, prazos, critério de sorteio e
-                forma de divulgação do resultado.
+                Pagamento confirmado, acesso liberado. Seus downloads ficam
+                associados ao seu cadastro.
               </p>
             </div>
 
             <div className="border bg-white rounded-xl p-6">
               <h3 className="font-semibold text-gray-900 mb-2">
-                Acompanhamento
+                Regras publicadas
               </h3>
               <p className="text-gray-700">
-                Status da campanha, cotas disponíveis/selecionadas e publicação
-                de resultado ficam acessíveis para consulta.
+                Quando houver campanha, você visualiza critérios, datas, status
+                e a forma de divulgação do resultado, junto dos números do seu
+                pedido.
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Beneficente */}
-      <section id="beneficente" className="px-6 py-12">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            Sorteios beneficentes (impacto)
-          </h2>
-
-          <div className="border rounded-xl p-6">
-            <p className="text-gray-700 leading-relaxed">
-              A Golden Book realiza sorteios com finalidade beneficente. O
-              objetivo é conectar participantes a campanhas que apoiam causas e
-              instituições, com foco em organização e transparência.
-            </p>
-
-            <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              <div className="bg-green-50 border border-green-100 rounded-lg p-4">
-                <p className="font-semibold text-green-900">Causa</p>
-                <p className="text-sm text-green-900/90">
-                  Descrição do objetivo da campanha (ex.: tratamento, projeto
-                  social).
-                </p>
-              </div>
-              <div className="bg-green-50 border border-green-100 rounded-lg p-4">
-                <p className="font-semibold text-green-900">Destino</p>
-                <p className="text-sm text-green-900/90">
-                  Instituição/beneficiário e como os recursos serão utilizados.
-                </p>
-              </div>
-              <div className="bg-green-50 border border-green-100 rounded-lg p-4">
-                <p className="font-semibold text-green-900">
-                  Prestação de contas
-                </p>
-                <p className="text-sm text-green-900/90">
-                  Publicação de resultado e, quando aplicável,
-                  evidências/relatórios.
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -394,25 +423,30 @@ const Home = () => {
           <div className="grid gap-6 sm:grid-cols-3">
             <div className="border bg-white rounded-xl p-6">
               <h3 className="font-semibold text-gray-900 mb-2">
-                Painel de campanhas
+                Catálogo de ebooks
               </h3>
               <p className="text-gray-700">
-                Criação e gestão de campanhas, regras e publicações.
+                Navegação por categorias e acesso rápido ao que você comprou.
               </p>
             </div>
+
             <div className="border bg-white rounded-xl p-6">
               <h3 className="font-semibold text-gray-900 mb-2">
-                Seleção de cotas
+                Área do comprador
               </h3>
               <p className="text-gray-700">
-                Controle de cotas disponíveis e seleção por
-                intervalo/individual.
+                Histórico de pedidos, downloads disponíveis e dados do seu
+                cadastro.
               </p>
             </div>
+
             <div className="border bg-white rounded-xl p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">Resultados</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Campanhas de prêmios
+              </h3>
               <p className="text-gray-700">
-                Registro e divulgação do resultado do sorteio com histórico.
+                Consulta de campanhas ativas, regras, datas e números vinculados
+                aos pedidos.
               </p>
             </div>
           </div>
@@ -424,12 +458,10 @@ const Home = () => {
         <div className="max-w-6xl mx-auto border rounded-xl p-6 sm:p-10 bg-green-600 text-white">
           <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between">
             <div>
-              <h2 className="text-2xl font-semibold">
-                Pronto para participar?
-              </h2>
+              <h2 className="text-2xl font-semibold">Comece pelo conteúdo</h2>
               <p className="text-white/90 mt-2">
-                Crie sua conta para acompanhar campanhas, selecionar cotas e ver
-                resultados.
+                Crie sua conta para comprar ebooks, acessar downloads e
+                acompanhar campanhas quando disponíveis.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -461,7 +493,9 @@ const Home = () => {
             <img src={logo} alt="Golden Book" className="w-12 h-auto" />
             <div>
               <p className="font-semibold text-gray-900">Golden Book</p>
-              <p className="text-sm text-gray-600">Sorteios beneficentes</p>
+              <p className="text-sm text-gray-600">
+                Ebooks • Acesso imediato • Campanhas
+              </p>
             </div>
           </div>
 
@@ -470,10 +504,7 @@ const Home = () => {
               © {new Date().getFullYear()} Golden Book. Todos os direitos
               reservados.
             </p>
-            <p className="mt-1">
-              Termos • Privacidade • Contato
-              {/* Se você já tiver rotas/links, eu amarro aqui */}
-            </p>
+            <p className="mt-1">Termos • Privacidade • Contato</p>
           </div>
         </div>
       </footer>

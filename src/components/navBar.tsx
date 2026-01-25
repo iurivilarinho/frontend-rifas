@@ -32,7 +32,7 @@ const NavBar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
-  const [open, setOpen] = useState<boolean>();
+  const [open, setOpen] = useState<boolean>(false);
 
   const {
     register,
@@ -47,9 +47,6 @@ const NavBar = () => {
   const isPainelRoute = ["/panel/*", "/raffle/form/*", "/user/form/*"].some(
     (path) => Boolean(matchPath({ path, end: false }, pathname)),
   );
-
-  // regra final: painel = (raiz) OU (rotas do painel)
-  const isPainel = isRoot || isPainelRoute;
 
   const handleShare = () => {
     if (navigator.share) {
@@ -67,18 +64,36 @@ const NavBar = () => {
   };
 
   const handleAuthAction = () => {
-    if (isRoot) {
-      navigate("/login");
-      return;
-    }
-
     // logout mínimo (ajuste conforme seu auth real)
     localStorage.removeItem("token");
     navigate("/login");
   };
 
-  // === TOPBAR (Painel / Root) ===
-  if (isPainel) {
+  // === ROOT: mostrar SOMENTE Login ===
+  if (isRoot) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-50 bg-green-600 text-white flex items-center justify-between p-4 h-16">
+        <div className="flex items-center gap-3">
+          <img src={logo} alt="Golden Book" className="w-12 h-auto" />
+          <div className="leading-tight">
+            <p className="font-semibold">Golden Book</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="flex items-center gap-2 hover:underline"
+          onClick={() => navigate("/login")}
+        >
+          <LogIn className="h-5 w-5" />
+          <span className="hidden sm:inline">Login</span>
+        </button>
+      </div>
+    );
+  }
+
+  // === TOPBAR (Painel) ===
+  if (isPainelRoute) {
     return (
       <div className="fixed top-0 left-0 right-0 z-50 bg-green-600 text-white flex items-center justify-between p-4 h-16">
         <div className="flex items-center gap-3">
@@ -113,14 +128,8 @@ const NavBar = () => {
             className="flex items-center gap-2 hover:underline"
             onClick={handleAuthAction}
           >
-            {isRoot ? (
-              <LogIn className="h-5 w-5" />
-            ) : (
-              <LogOut className="h-5 w-5" />
-            )}
-            <span className="hidden sm:inline">
-              {isRoot ? "Login" : "Logout"}
-            </span>
+            <LogOut className="h-5 w-5" />
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>
@@ -169,10 +178,12 @@ const NavBar = () => {
         </Dialog>
         <span className="text-xs">Minhas Compras</span>
       </div>
+
       <div className="flex flex-col items-center">
         <BookSearch onClick={() => navigate("/raffles")} className="h-6 w-6" />
         <span className="text-xs">Descobrir</span>
       </div>
+
       <div className="flex flex-col items-center">
         <Share2 onClick={handleShare} className="h-6 w-6" />
         <span className="text-xs">Compartilhar</span>
