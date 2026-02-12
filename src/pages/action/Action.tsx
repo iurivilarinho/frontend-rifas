@@ -154,7 +154,10 @@ const RifaPage = () => {
     });
   };
 
-  const porcentagemVendida = dataRifa?.soldPercentage;
+  const porcentagemVendida = Math.max(
+    dataRifa?.soldPercentage,
+    dataRifa?.standardSalesPercentage,
+  );
 
   if (isLoadingRifa) {
     return <Loading />;

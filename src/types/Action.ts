@@ -12,4 +12,5 @@ export interface Action {
   quotas: Cota[];
   numberOfShares: number;
   soldPercentage?: number;
+  standardSalesPercentage?: number;
 }

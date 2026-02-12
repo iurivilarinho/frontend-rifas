@@ -55,7 +55,10 @@ const ActionList = () => {
   return (
     <div>
       {actions.map((action: Action) => {
-        const porcentagemVendida = action.soldPercentage;
+        const porcentagemVendida = Math.max(
+          action?.soldPercentage ?? 0,
+          action?.standardSalesPercentage ?? 0,
+        );
 
         return (
           <div className="relative my-3" key={action.id}>
