@@ -37,11 +37,8 @@ const rifaFormSchema = z.object({
   minPurchaseShares: z.number().positive("A compra mínima deve ser positiva"),
   maxPurchaseShares: z.number().positive("A compra máxima deve ser positiva"),
   descriptionAward: z.string().min(1, "A descrição da premiação é obrigatória"),
-
-  // ✅ novo: campo obrigatório no request
   showQuotas: z.boolean(),
-
-  // ✅ cover como array com 1 item (compatível com DragAndDrop)
+  standardSalesPercentage: z.number().optional(),
   cover: z.any().refine((files) => Array.isArray(files) && files.length === 1, {
     message: "Adicione a imagem de capa",
   }),
@@ -156,6 +153,7 @@ const RifaForm = () => {
       showQuotas: true, // ✅ default (ajuste conforme regra do produto)
       cover: [],
       images: [],
+      standardSalesPercentage: undefined,
     },
   });
 
@@ -409,6 +407,41 @@ const RifaForm = () => {
                 {errors.maxPurchaseShares?.message && (
                   <FieldError>{errors.maxPurchaseShares.message}</FieldError>
                 )}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="standardSalesPercentage">
+                  Percentual padrão de vendas (%)
+                </FieldLabel>
+
+                <Input
+                  id="standardSalesPercentage"
+                  className="w-full"
+                  type="number"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder="Ex.: 10"
+                  {...register("standardSalesPercentage", {
+                    setValueAs: (v) => {
+                      if (v === "" || v === null || v === undefined)
+                        return undefined;
+                      const n = Number(v);
+                      return Number.isFinite(n) ? n : undefined;
+                    },
+                  })}
+                  disabled={isViewMode}
+                  aria-invalid={Boolean(errors.standardSalesPercentage)}
+                />
+
+                {errors.standardSalesPercentage?.message && (
+                  <FieldError>
+                    {errors.standardSalesPercentage.message}
+                  </FieldError>
+                )}
+
+                <p className="mt-1 text-xs text-gray-600">
+                  Informe de 0 a 100. Deixe em branco para não aplicar
+                  percentual padrão.
+                </p>
               </Field>
             </div>
 
