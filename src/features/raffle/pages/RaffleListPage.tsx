@@ -106,9 +106,9 @@ export const RaffleListPage = () => {
   const allQuery = useGetRaffles({ enabled: !hasCpf });
   const byCpfQuery = useGetRafflesByCpf(cpf, { enabled: hasCpf });
 
-  const isLoading = hasCpf ? byCpfQuery.isLoading : allQuery.isLoading;
   const error = hasCpf ? byCpfQuery.error : allQuery.error;
   const raffles = hasCpf ? byCpfQuery.data : allQuery.data;
+  const isFirstLoad = raffles === undefined && !error;
 
   const handleClick = (id?: number) => {
     if (!id) return;
@@ -125,12 +125,16 @@ export const RaffleListPage = () => {
     );
   }
 
-  if (isLoading) {
+  if (isFirstLoad) {
     return (
       <PageShell withTopNav={false}>
         <PageHeader
           title={hasCpf ? "Minhas compras" : "Rifas disponíveis"}
-          description="Carregando rifas..."
+          description={
+            hasCpf
+              ? "Acompanhe as rifas em que você adquiriu cotas."
+              : "Escolha uma rifa para participar."
+          }
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (

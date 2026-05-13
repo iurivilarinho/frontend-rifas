@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, Users as UsersIcon } from "lucide-react";
+import { Mail, Pencil, Plus, Users as UsersIcon } from "lucide-react";
 
+import { StatusBadge } from "@/components/badge/StatusBadge";
 import { Button } from "@/components/button/Button";
 import { SectionCard } from "@/components/card/SectionCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -30,8 +31,9 @@ export const UserModule = () => {
     initialSize: 20,
   });
 
-  const { data, isLoading, error } = useGetUsers({ page, size });
+  const { data, error } = useGetUsers({ page, size });
   const users = data?.content ?? [];
+  const isFirstLoad = data === undefined && !error;
 
   const onAddUser = () => navigate("/user/form/create");
   const onEditUser = (userId?: number) =>
@@ -56,7 +58,11 @@ export const UserModule = () => {
         accessorKey: "status",
         header: "Ativo",
         size: 110,
-        cell: (ctx) => (ctx.getValue<boolean>() ? "Sim" : "Não"),
+        cell: (ctx) => (
+          <StatusBadge tone={ctx.getValue<boolean>() ? "success" : "muted"}>
+            {ctx.getValue<boolean>() ? "Sim" : "Não"}
+          </StatusBadge>
+        ),
       },
       {
         id: "actions",
@@ -102,7 +108,7 @@ export const UserModule = () => {
         }
       />
 
-      {isLoading ? (
+      {isFirstLoad ? (
         <SectionCard>
           <TableSkeleton rows={6} columns={5} />
         </SectionCard>
@@ -122,14 +128,60 @@ export const UserModule = () => {
         </SectionCard>
       ) : (
         <SectionCard>
-          <TableRoot<UserApiDto>
-            data={users}
-            columns={columns}
-            tableId="users-table"
-            fillContainerWidth
-          >
-            <TableContent stickyHeader />
-          </TableRoot>
+          {/* Desktop: tabela padrão */}
+          <div className="hidden md:block">
+            <TableRoot<UserApiDto>
+              data={users}
+              columns={columns}
+              tableId="users-table"
+              fillContainerWidth
+            >
+              <TableContent stickyHeader />
+            </TableRoot>
+          </div>
+
+          {/* Mobile: cards */}
+          <ul className="flex flex-col gap-2 p-3 md:hidden">
+            {users.map((u) => (
+              <li
+                key={u.id}
+                className="rounded-md border border-border bg-card p-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {u.name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      @{u.login}
+                    </p>
+                  </div>
+                  <StatusBadge tone={u.status ? "success" : "muted"}>
+                    {u.status ? "Ativo" : "Inativo"}
+                  </StatusBadge>
+                </div>
+                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  <p className="truncate">CPF: {u.cpf}</p>
+                  <p className="inline-flex items-center gap-1 truncate">
+                    <Mail className="h-3 w-3 shrink-0" />
+                    {u.email}
+                  </p>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onEditUser(u.id)}
+                  >
+                    <Pencil className="mr-1 h-3 w-3" />
+                    Editar
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
           <TablePagination
             pagination={pagination}
             onPageChange={(page1Based) => onPageChange(Math.max(0, page1Based - 1))}

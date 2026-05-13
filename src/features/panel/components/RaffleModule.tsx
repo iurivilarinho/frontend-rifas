@@ -56,7 +56,8 @@ const ALLOWED_TRANSITIONS: Record<string, RaffleStatus[]> = {
 
 export const RaffleModule = () => {
   const navigate = useNavigate();
-  const { data: raffles, isLoading, error } = useGetMyRaffles();
+  const { data: raffles, error } = useGetMyRaffles();
+  const isFirstLoad = raffles === undefined && !error;
   const { mutateAsync: updateStatus } = useUpdateRaffleStatus();
 
   const [drawTarget, setDrawTarget] = useState<RaffleWithStatus | null>(null);
@@ -215,7 +216,7 @@ export const RaffleModule = () => {
         }
       />
 
-      {isLoading ? (
+      {isFirstLoad ? (
         <SectionCard>
           <TableSkeleton rows={6} columns={5} />
         </SectionCard>
@@ -235,14 +236,118 @@ export const RaffleModule = () => {
         </SectionCard>
       ) : (
         <SectionCard>
-          <TableRoot<RaffleWithStatus>
-            data={raffles as RaffleWithStatus[]}
-            columns={columns}
-            tableId="raffles-table"
-            fillContainerWidth
-          >
-            <TableContent stickyHeader />
-          </TableRoot>
+          {/* Desktop */}
+          <div className="hidden md:block">
+            <TableRoot<RaffleWithStatus>
+              data={raffles as RaffleWithStatus[]}
+              columns={columns}
+              tableId="raffles-table"
+              fillContainerWidth
+            >
+              <TableContent stickyHeader />
+            </TableRoot>
+          </div>
+
+          {/* Mobile */}
+          <ul className="flex flex-col gap-2 p-3 md:hidden">
+            {(raffles as RaffleWithStatus[]).map((r) => {
+              const status = (r.status ?? "DRAFT") as RaffleStatus;
+              const sold = (r.soldPercentage ?? 0).toFixed(1);
+              return (
+                <li
+                  key={r.id}
+                  className="rounded-md border border-border bg-card p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {r.title}
+                      </p>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <RaffleStatusBadge status={status} />
+                        <span className="text-xs text-muted-foreground">
+                          {sold}% vendido
+                        </span>
+                      </div>
+                    </div>
+                    <TableActionsDropdown
+                      row={{ original: r } as never}
+                      columnActions={(() => {
+                        const items: ColumnAction[] = [
+                          {
+                            label: "Editar",
+                            onClick: () => onEdit(r.id),
+                            icon: <Pencil className="h-4 w-4" />,
+                          },
+                          {
+                            label: "Visualizar",
+                            onClick: () => onView(r.id),
+                            icon: <Eye className="h-4 w-4" />,
+                          },
+                          {
+                            label: "Página de venda",
+                            onClick: () => onSale(r.id),
+                            icon: <ShoppingCart className="h-4 w-4" />,
+                          },
+                          {
+                            label: "Compradores",
+                            onClick: () => onBuyers(r.id),
+                            icon: <UsersIcon className="h-4 w-4" />,
+                          },
+                          {
+                            label: "Exportar Excel",
+                            onClick: () => {
+                              if (r.id)
+                                window.open(
+                                  buildSalesXlsxUrl(r.id),
+                                  "_blank",
+                                  "noreferrer",
+                                );
+                            },
+                            icon: <Download className="h-4 w-4" />,
+                          },
+                          {
+                            label: "Compartilhar acesso",
+                            onClick: () => setShareTarget(r),
+                            icon: <Share2 className="h-4 w-4" />,
+                          },
+                        ];
+                        (ALLOWED_TRANSITIONS[status] ?? []).forEach((target) => {
+                          items.push({
+                            label: `Mudar para ${RAFFLE_STATUS_LABEL[target]}`,
+                            onClick: () => handleStatus(r, target),
+                            icon:
+                              target === "CANCELLED" ? (
+                                <XCircle className="h-4 w-4" />
+                              ) : (
+                                <Flag className="h-4 w-4" />
+                              ),
+                          });
+                        });
+                        if (
+                          ["OPEN", "SOLD_OUT", "CLOSED", "PAUSED"].includes(status)
+                        ) {
+                          items.push({
+                            label: "Sortear",
+                            onClick: () => setDrawTarget(r),
+                            icon: <Trophy className="h-4 w-4" />,
+                          });
+                        }
+                        return items;
+                      })()}
+                      subtle
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Cota: R${" "}
+                    {r.quotaPrice != null
+                      ? (Number(r.quotaPrice) / 100).toFixed(2)
+                      : "-"}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
         </SectionCard>
       )}
 

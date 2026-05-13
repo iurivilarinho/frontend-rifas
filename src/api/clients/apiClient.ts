@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import axios, { type AxiosError } from "axios";
 
 const runtimeApiBaseUrl = window.__APP_RUNTIME_CONFIG__?.RAFFLE_API_URL?.trim();
 
@@ -13,38 +13,30 @@ export const setOnSessionExpired = (callback: () => void) => {
   onSessionExpired = callback;
 };
 
-interface RetriableAxiosRequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean;
-}
-
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,
   withCredentials: true,
 });
 
-const refreshClient = axios.create({
-  baseURL: apiBaseUrl,
-  withCredentials: true,
-});
+const wasLoggedBefore = () => {
+  try {
+    return Boolean(localStorage.getItem("user"));
+  } catch {
+    return false;
+  }
+};
 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as RetriableAxiosRequestConfig | undefined;
-    const status = error.response?.status;
-    const isRefreshRequest = originalRequest?.url?.includes("/auth/refresh") ?? false;
-
-    if (status === 401 && originalRequest && !originalRequest._retry && !isRefreshRequest) {
+    if (error.response?.status === 401 && wasLoggedBefore()) {
       try {
-        originalRequest._retry = true;
-        await refreshClient.post("/auth/refresh");
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        onSessionExpired();
-        return Promise.reject(refreshError);
+        localStorage.removeItem("user");
+      } catch {
+        // ignore
       }
+      onSessionExpired();
     }
-
     return Promise.reject(error);
   },
 );

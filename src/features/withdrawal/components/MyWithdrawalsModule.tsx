@@ -103,7 +103,7 @@ export const MyWithdrawalsModule = () => {
       <section className="flex flex-col gap-6">
         <PageHeader
           title="Saldo e saques"
-          description="Carregando saldo..."
+          description="Acompanhe seu saldo e solicite repasses."
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (

@@ -184,7 +184,6 @@ export const RaffleBuyersPage = () => {
       <PageShell>
         <PageHeader
           title={`Compradores · ${raffle?.title ?? `Rifa #${id}`}`}
-          description="Carregando reservas..."
         />
         <SectionCard>
           <TableSkeleton rows={6} columns={6} />
@@ -250,14 +249,68 @@ export const RaffleBuyersPage = () => {
           />
         ) : (
           <>
-            <TableRoot<RaffleBuyerApiDto>
-              data={buyers}
-              columns={columns}
-              tableId="raffle-buyers-table"
-              fillContainerWidth
-            >
-              <TableContent stickyHeader />
-            </TableRoot>
+            {/* Desktop */}
+            <div className="hidden md:block">
+              <TableRoot<RaffleBuyerApiDto>
+                data={buyers}
+                columns={columns}
+                tableId="raffle-buyers-table"
+                fillContainerWidth
+              >
+                <TableContent stickyHeader />
+              </TableRoot>
+            </div>
+
+            {/* Mobile */}
+            <ul className="flex flex-col gap-2 p-3 md:hidden">
+              {buyers.map((b) => (
+                <li
+                  key={b.reservationId}
+                  className="rounded-md border border-border bg-card p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {b.fullName}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {b.cpf}
+                      </p>
+                    </div>
+                    <StatusBadge tone={b.paid ? "success" : "warning"}>
+                      {b.paid ? "Pago" : "Aguardando"}
+                    </StatusBadge>
+                  </div>
+                  <p className="mt-2 truncate text-xs text-muted-foreground">
+                    {b.email}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{b.phone}</p>
+                  <div className="mt-2 flex items-center justify-between text-xs text-foreground">
+                    <span>
+                      {b.quantity} cota(s) · {formatBrl(b.totalAmount)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {formatDate(b.createdAt)}
+                    </span>
+                  </div>
+                  {b.paid && (
+                    <div className="mt-2 flex justify-end">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={isRefunding}
+                        onClick={() => handleRefund(b.reservationId)}
+                      >
+                        <RotateCcw className="mr-1 h-3 w-3" />
+                        Estornar
+                      </Button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+
             <TablePagination
               pagination={pagination}
               onPageChange={(page1Based) => onPageChange(Math.max(0, page1Based - 1))}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CircleHelp } from "lucide-react";
 
 import { Button } from "@/components/button/Button";
@@ -56,6 +56,7 @@ export const RandomQuotaPicker = ({
   const [quantityToGenerate, setQuantityToGenerate] = useState(0);
   const [randomNumbers, setRandomNumbers] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const availableCount = useMemo(
     () => Math.max(0, numberOfShares - selectedNumbers.size),
@@ -147,6 +148,11 @@ export const RandomQuotaPicker = ({
     setRandomNumbers(generated);
     onGenerate(generated);
     setError(null);
+
+    // Aguarda o render do QuotaGrid antes de rolar até ele.
+    requestAnimationFrame(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   return (
@@ -232,7 +238,9 @@ export const RandomQuotaPicker = ({
         </div>
       </div>
 
-      <QuotaGrid numbers={randomNumbers} />
+      <div ref={resultRef} className="scroll-mt-20">
+        <QuotaGrid numbers={randomNumbers} />
+      </div>
     </div>
   );
 };

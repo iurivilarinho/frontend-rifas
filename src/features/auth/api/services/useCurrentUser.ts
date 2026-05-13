@@ -15,12 +15,21 @@ const fetchCurrentUser = async (): Promise<CurrentUserDto> => {
   return data;
 };
 
+const hasLocalSession = () => {
+  try {
+    return Boolean(localStorage.getItem("user"));
+  } catch {
+    return false;
+  }
+};
+
 export const useCurrentUser = () => {
   return useQuery({
     queryKey: ["current-user"],
     queryFn: fetchCurrentUser,
     staleTime: 5 * 60 * 1000,
     retry: false,
+    enabled: hasLocalSession(),
   });
 };
 

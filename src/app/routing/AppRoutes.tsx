@@ -1,12 +1,7 @@
-import {
-  BrowserRouter,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
+import { AppNav } from "@/components/layout/AppNav";
 import { CookieConsent } from "@/components/legal/CookieConsent";
-import { NavBar } from "@/components/layout/NavBar";
 import { LandingPage } from "@/features/landing";
 import { LoginPage } from "@/features/auth";
 import { PanelPage } from "@/features/panel";
@@ -22,16 +17,11 @@ import {
 import { ProtectedRoute } from "./ProtectedRoute";
 import { SessionGate } from "./SessionGate";
 
-const NavBarWrapper = () => {
-  const location = useLocation();
-  const noNavBarRoutes = ["/login"];
-  return !noNavBarRoutes.includes(location.pathname) ? <NavBar /> : null;
-};
-
 export const AppRoutes = () => {
   return (
     <BrowserRouter>
       <SessionGate />
+      <AppNav />
       <Routes>
         {/* ===== Públicas ===== */}
         <Route path="/" element={<LandingPage />} />
@@ -77,7 +67,6 @@ export const AppRoutes = () => {
           }
         />
       </Routes>
-      <NavBarWrapper />
       <CookieConsent />
     </BrowserRouter>
   );

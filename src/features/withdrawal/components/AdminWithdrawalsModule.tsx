@@ -268,14 +268,90 @@ export const AdminWithdrawalsModule = () => {
         </SectionCard>
       ) : (
         <SectionCard>
-          <TableRoot<WithdrawalApiDto>
-            data={items}
-            columns={columns}
-            tableId="admin-withdrawals-table"
-            fillContainerWidth
-          >
-            <TableContent stickyHeader />
-          </TableRoot>
+          {/* Desktop */}
+          <div className="hidden md:block">
+            <TableRoot<WithdrawalApiDto>
+              data={items}
+              columns={columns}
+              tableId="admin-withdrawals-table"
+              fillContainerWidth
+            >
+              <TableContent stickyHeader />
+            </TableRoot>
+          </div>
+
+          {/* Mobile */}
+          <ul className="flex flex-col gap-2 p-3 md:hidden">
+            {items.map((w) => {
+              const actions: ColumnAction[] = [];
+              if (w.status === "PENDING") {
+                actions.push({
+                  label: "Aprovar",
+                  icon: <Check className="h-4 w-4" />,
+                  onClick: () => handleApprove(w.id),
+                });
+              }
+              if (w.status === "PENDING" || w.status === "APPROVED") {
+                actions.push({
+                  label: "Marcar como paga",
+                  icon: <Wallet className="h-4 w-4" />,
+                  onClick: () => handlePaid(w.id),
+                });
+                actions.push({
+                  label: "Rejeitar",
+                  icon: <X className="h-4 w-4" />,
+                  onClick: () => handleReject(w.id),
+                });
+              }
+              return (
+                <li
+                  key={w.id}
+                  className="rounded-md border border-border bg-card p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {w.userName}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {w.userEmail}
+                      </p>
+                    </div>
+                    <StatusBadge tone={STATUS_TONE[w.status]}>
+                      {STATUS_LABEL[w.status]}
+                    </StatusBadge>
+                  </div>
+                  <div className="mt-2 text-sm">
+                    <p className="font-semibold text-foreground">
+                      {formatBrl(w.netAmount)}{" "}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        líq.
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatBrl(w.grossAmount)} −{" "}
+                      {Number(w.feePercentage).toFixed(2)}% taxa
+                    </p>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {renderPaymentSnapshot(w.paymentSnapshot)}
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Solicitado em {formatDate(w.requestedAt)}
+                  </p>
+                  {actions.length > 0 && (
+                    <div className="mt-3 flex justify-end">
+                      <TableActionsDropdown
+                        row={{ original: w } as never}
+                        columnActions={actions}
+                        subtle
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </SectionCard>
       )}
     </section>

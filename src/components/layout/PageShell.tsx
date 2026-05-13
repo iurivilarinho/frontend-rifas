@@ -7,7 +7,10 @@ type PageShellProps = {
   className?: string;
   /** Largura máxima do conteúdo central. Default: max-w-6xl. */
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl";
-  /** Reserva espaço pra navbar fixa do painel (h-16). Default: true. */
+  /**
+   * @deprecated A reserva de espaço da AppNav é feita no App.tsx.
+   * Mantido para compatibilidade com callsites antigos — ignorado.
+   */
   withTopNav?: boolean;
 };
 
@@ -24,23 +27,12 @@ const maxWidthMap = {
   "7xl": "max-w-7xl",
 } as const;
 
-export const PageShell = ({
-  children,
-  className,
-  maxWidth = "6xl",
-  withTopNav = true,
-}: PageShellProps) => {
+export const PageShell = ({ children, className, maxWidth = "6xl" }: PageShellProps) => {
   return (
-    <div
-      className={mergeClasses(
-        "min-h-screen min-h-[100dvh] bg-background text-foreground",
-        withTopNav && "pt-16",
-        className,
-      )}
-    >
+    <div className={mergeClasses("bg-background text-foreground", className)}>
       <div
         className={mergeClasses(
-          "mx-auto w-full px-4 py-8 pb-[var(--portal-bottom-spacing,5rem)] sm:px-6",
+          "mx-auto w-full px-4 py-6 sm:px-6 sm:py-8",
           maxWidthMap[maxWidth],
         )}
       >
