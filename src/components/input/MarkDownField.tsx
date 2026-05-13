@@ -4,6 +4,8 @@ import "@blocknote/mantine/style.css";
 import { useCreateBlockNote } from "@blocknote/react";
 import { useEffect, useMemo, useRef } from "react";
 
+import { mergeClasses } from "@/lib/mergeClasses";
+
 interface EditorBlockMdProps {
   value?: string; // markdown atual (RHF)
   onChange: (value: string) => void;
@@ -25,8 +27,14 @@ export const EditorBlockNoteMd = ({
 }: EditorBlockMdProps) => {
   const editable = !disabled;
 
+  /** True somente depois que o conteúdo inicial já foi parseado pro editor. */
   const readyToEmitChanges = useRef(false);
-  const lastLoadedRef = useRef<{ key?: string; md?: string }>({});
+  /** Último markdown que carregamos do `value` pro editor. */
+  const lastLoadedMdRef = useRef<string | undefined>(undefined);
+  /** Último docKey carregado. */
+  const lastLoadedKeyRef = useRef<string | undefined>(undefined);
+  /** Último markdown emitido pelo próprio editor (evita laço). */
+  const lastEmittedMdRef = useRef<string | undefined>(undefined);
 
   const editor = useCreateBlockNote({ initialContent: undefined });
 
@@ -34,25 +42,32 @@ export const EditorBlockNoteMd = ({
     let cancelled = false;
 
     const load = async () => {
-      const last = lastLoadedRef.current;
-      const sameKey = (docKey ?? "") === (last.key ?? "");
-      const sameMd = (value ?? "") === (last.md ?? "");
-      if (sameKey && sameMd) return;
+      const incomingMd = value ?? "";
+      const keyChanged = (docKey ?? "") !== (lastLoadedKeyRef.current ?? "");
 
-      readyToEmitChanges.current = false;
-
-      if (!value?.trim()) {
-        editor.replaceBlocks(editor.document, []);
-        lastLoadedRef.current = { key: docKey, md: value ?? "" };
-        readyToEmitChanges.current = true;
+      // Eco do nosso próprio onChange: o RHF reemitiu o markdown que acabamos
+      // de produzir. Não recarrega — isso é o que estava resetando o cursor.
+      if (!keyChanged && incomingMd === (lastEmittedMdRef.current ?? "")) {
+        return;
+      }
+      // Já está sincronizado com a última carga.
+      if (!keyChanged && incomingMd === (lastLoadedMdRef.current ?? "")) {
         return;
       }
 
-      const blocks = await editor.tryParseMarkdownToBlocks(value);
-      if (cancelled) return;
+      readyToEmitChanges.current = false;
 
-      editor.replaceBlocks(editor.document, blocks ?? []);
-      lastLoadedRef.current = { key: docKey, md: value };
+      if (!incomingMd.trim()) {
+        editor.replaceBlocks(editor.document, []);
+      } else {
+        const blocks = await editor.tryParseMarkdownToBlocks(incomingMd);
+        if (cancelled) return;
+        editor.replaceBlocks(editor.document, blocks ?? []);
+      }
+
+      lastLoadedMdRef.current = incomingMd;
+      lastLoadedKeyRef.current = docKey;
+      lastEmittedMdRef.current = incomingMd;
       readyToEmitChanges.current = true;
     };
 
@@ -86,21 +101,25 @@ export const EditorBlockNoteMd = ({
 
   return (
     <div
-      className={["my-3 mb-6", className].filter(Boolean).join(" ")}
+      className={mergeClasses("my-3 mb-6", className)}
       {...blockFilesHandlers}
     >
       <BlockNoteView
         editor={editor}
         editable={editable}
-        className={`w-full rounded-lg border shadow ${
-          disabled ? "bg-gray-50" : "bg-white"
-        } ${error ? "border-red-300" : "border-green-200"}`}
+        className={mergeClasses(
+          "w-full rounded-lg border shadow-sm",
+          disabled ? "bg-muted" : "bg-card",
+          error ? "border-destructive" : "border-border",
+        )}
         style={{ minHeight, padding: 12 }}
         onChange={async () => {
           if (!editable) return;
           if (!readyToEmitChanges.current) return;
 
           const md = await editor.blocksToMarkdownLossy();
+          // Guarda ANTES de propagar pra que o useEffect detecte como eco.
+          lastEmittedMdRef.current = md;
           onChange(md);
         }}
       />

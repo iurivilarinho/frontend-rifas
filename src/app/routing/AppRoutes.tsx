@@ -1,0 +1,84 @@
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+
+import { CookieConsent } from "@/components/legal/CookieConsent";
+import { NavBar } from "@/components/layout/NavBar";
+import { LandingPage } from "@/features/landing";
+import { LoginPage } from "@/features/auth";
+import { PanelPage } from "@/features/panel";
+import { PrivacyPolicyPage, TermsOfUsePage } from "@/features/legal";
+import { UserFormPage } from "@/features/user";
+import {
+  RafflePage,
+  RaffleFormPage,
+  RaffleListPage,
+  RaffleBuyersPage,
+} from "@/features/raffle";
+
+import { ProtectedRoute } from "./ProtectedRoute";
+import { SessionGate } from "./SessionGate";
+
+const NavBarWrapper = () => {
+  const location = useLocation();
+  const noNavBarRoutes = ["/login"];
+  return !noNavBarRoutes.includes(location.pathname) ? <NavBar /> : null;
+};
+
+export const AppRoutes = () => {
+  return (
+    <BrowserRouter>
+      <SessionGate />
+      <Routes>
+        {/* ===== Públicas ===== */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/raffles/:cpf?" element={<RaffleListPage />} />
+        <Route path="/raffle/:raffleId/:cpf?" element={<RafflePage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfUsePage />} />
+
+        {/* ===== Protegidas (qualquer user autenticado) ===== */}
+        <Route
+          path="/panel"
+          element={
+            <ProtectedRoute>
+              <PanelPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/raffle/form/:formType/:raffleId?"
+          element={
+            <ProtectedRoute>
+              <RaffleFormPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/raffle/:raffleId/buyers"
+          element={
+            <ProtectedRoute>
+              <RaffleBuyersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ===== Protegidas (somente admin) ===== */}
+        <Route
+          path="/user/form/:formType/:userId?"
+          element={
+            <ProtectedRoute requireAdmin>
+              <UserFormPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+      <NavBarWrapper />
+      <CookieConsent />
+    </BrowserRouter>
+  );
+};

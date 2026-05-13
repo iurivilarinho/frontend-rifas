@@ -9,8 +9,23 @@ lerna-debug.log*
 
 node_modules
 dist
+dist.zip
 dist-ssr
 *.local
+*.tsbuildinfo
+vite.config.d.ts
+vite.config.js
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Deploy secrets
+scripts/.deploy.local
+
+# Test
+coverage
 
 # Editor directories and files
 .vscode/*

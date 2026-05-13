@@ -1,7 +1,7 @@
 import * as React from "react";
 import { mergeClasses } from "@/lib/mergeClasses";
 import { Notification, NotificationProps } from "../input/Notification";
-import { Label } from "../input/Label";
+import { Label } from "../input/base/Label";
 
 export interface TextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {

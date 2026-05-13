@@ -7,7 +7,7 @@ import useEmblaCarousel, {
 import * as React from "react";
 
 import { mergeClasses } from "@/lib/mergeClasses";
-import { Button } from "../button/button";
+import { Button } from "../button/Button";
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;

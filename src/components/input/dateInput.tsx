@@ -2,8 +2,8 @@ import { mergeClasses } from "@/lib/mergeClasses";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Field, FieldLabel } from "./Field";
-import { Input } from "./Input";
+import { Field, FieldLabel } from "./base/Field";
+import { Input } from "./base/Input";
 
 interface DataInputProps {
   className?: string;
