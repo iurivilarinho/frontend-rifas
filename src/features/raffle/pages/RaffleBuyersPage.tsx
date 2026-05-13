@@ -10,13 +10,13 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { FilterPills } from "@/components/filter/FilterPills";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageShell } from "@/components/layout/PageShell";
-import { Loading } from "@/components/Loading";
 import { TableRoot } from "@/components/table/Table";
 import { TableContent } from "@/components/table/TableContent";
 import {
   type Pagination,
   TablePagination,
 } from "@/components/table/TablePagination";
+import { TableSkeleton } from "@/components/table/TableSkeleton";
 import { usePagination } from "@/hooks/usePagination";
 
 import type { RaffleBuyerApiDto } from "../api/dtos/buyer";
@@ -179,7 +179,19 @@ export const RaffleBuyersPage = () => {
       </PageShell>
     );
   }
-  if (isLoading) return <Loading />;
+  if (isLoading) {
+    return (
+      <PageShell>
+        <PageHeader
+          title={`Compradores · ${raffle?.title ?? `Rifa #${id}`}`}
+          description="Carregando reservas..."
+        />
+        <SectionCard>
+          <TableSkeleton rows={6} columns={6} />
+        </SectionCard>
+      </PageShell>
+    );
+  }
   if (error)
     return (
       <PageShell>

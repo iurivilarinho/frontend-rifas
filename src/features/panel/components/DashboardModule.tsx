@@ -2,11 +2,11 @@ import { Banknote, CheckCircle2, Clock, ListChecks, Trophy, Users } from "lucide
 import { useNavigate } from "react-router-dom";
 
 import { RaffleStatusBadge } from "@/components/badge/StatusBadge";
-import { KpiCard } from "@/components/card/KpiCard";
+import { KpiCard, KpiCardSkeleton } from "@/components/card/KpiCard";
 import { SectionCard, SectionCardHeader } from "@/components/card/SectionCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
-import { Loading } from "@/components/Loading";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Skeleton } from "@/components/skeleton/Skeleton";
 import { useGetDashboard } from "../api/services/useDashboardService";
 import type { RaffleFinancialSummary } from "../api/dtos/dashboard";
 
@@ -17,14 +17,48 @@ export const DashboardModule = () => {
   const navigate = useNavigate();
   const { data, isLoading, error } = useGetDashboard();
 
-  if (isLoading) return <Loading />;
   if (error)
     return (
       <div className="text-sm text-destructive">
         Erro ao carregar dashboard: {(error as Error).message}
       </div>
     );
-  if (!data) return null;
+
+  if (isLoading || !data) {
+    return (
+      <section className="flex flex-col gap-6">
+        <PageHeader
+          title="Visão geral"
+          description="Saldo consolidado, status das rifas e indicadores rápidos."
+        />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <KpiCardSkeleton key={i} />
+          ))}
+        </div>
+        <SectionCard>
+          <SectionCardHeader icon={Trophy} title="Saldo por rifa" />
+          <ul className="divide-y divide-border">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <li
+                key={i}
+                className="flex items-center justify-between gap-3 px-5 py-4"
+              >
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+                <div className="space-y-1 text-right">
+                  <Skeleton className="ml-auto h-4 w-20" />
+                  <Skeleton className="ml-auto h-3 w-16" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </SectionCard>
+      </section>
+    );
+  }
 
   return (
     <section className="flex flex-col gap-6">

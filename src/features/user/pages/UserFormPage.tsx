@@ -16,8 +16,11 @@ import {
 import { z } from "zod";
 
 import { Button } from "@/components/button/Button";
+import { SectionCard, SectionCardHeader } from "@/components/card/SectionCard";
 import { Field, FieldError, FieldLabel } from "@/components/input/base/Field";
 import { Input } from "@/components/input/base/Input";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageShell } from "@/components/layout/PageShell";
 import { Loading } from "@/components/Loading";
 import { useGetCep } from "@/features/cep";
 import { isFormType, type FormType } from "@/types/formType";
@@ -80,9 +83,9 @@ export const UserFormPage = () => {
   const needsId = formType === "edit" || formType === "view";
 
   const pageMeta = useMemo(() => {
-    if (formType === "edit") return { title: "Editar Usuário", icon: Pencil };
-    if (formType === "view") return { title: "Visualizar Usuário", icon: Eye };
-    return { title: "Cadastrar Usuário", icon: Plus };
+    if (formType === "edit") return { title: "Editar usuário", icon: Pencil };
+    if (formType === "view") return { title: "Visualizar usuário", icon: Eye };
+    return { title: "Cadastrar usuário", icon: Plus };
   }, [formType]);
 
   const {
@@ -138,262 +141,253 @@ export const UserFormPage = () => {
 
   if (isLoadingUser) return <Loading />;
 
-  const Icon = pageMeta.icon;
   const ctaLabel = formType === "edit" ? "Salvar" : "Cadastrar";
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-green-50 px-4 py-8">
-      <div className="mx-auto w-full max-w-5xl space-y-6">
-        <div className="rounded-xl border border-green-200 bg-white p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full border border-green-200 bg-green-50 p-2">
-                <Icon className="h-5 w-5 text-green-700" />
-              </div>
+    <PageShell maxWidth="5xl">
+      <PageHeader
+        title={pageMeta.title}
+        description="Dados essenciais para cadastro e participação nas campanhas."
+        actions={
+          <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+            <BadgeCheck className="h-4 w-4 text-primary" />
+            <span>Validação automática</span>
+          </div>
+        }
+      />
+
+      <form onSubmit={handleSubmit(submitUser)} className="grid gap-6">
+        <SectionCard>
+          <SectionCardHeader icon={IdCard} title="Dados do usuário" />
+          <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="name">Nome completo</FieldLabel>
+              <Input
+                id="name"
+                className="w-full min-w-0"
+                autoComplete="name"
+                {...register("name")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.name)}
+              />
+              {errors.name && <FieldError>{errors.name.message}</FieldError>}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="dateOfBirth">Data de nascimento</FieldLabel>
+              <Input
+                id="dateOfBirth"
+                type="date"
+                className="w-full min-w-0"
+                {...register("dateOfBirth")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.dateOfBirth)}
+              />
+              {errors.dateOfBirth && (
+                <FieldError>{errors.dateOfBirth.message}</FieldError>
+              )}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="cpf">CPF</FieldLabel>
+              <Input
+                id="cpf"
+                className="w-full min-w-0"
+                inputMode="numeric"
+                {...register("cpf")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.cpf)}
+              />
+              {errors.cpf && <FieldError>{errors.cpf.message}</FieldError>}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="rg">RG</FieldLabel>
+              <Input
+                id="rg"
+                className="w-full min-w-0"
+                {...register("rg")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.rg)}
+              />
+              {errors.rg && <FieldError>{errors.rg.message}</FieldError>}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="personalPhone">Telefone celular</FieldLabel>
+              <Input
+                id="personalPhone"
+                className="w-full min-w-0"
+                inputMode="tel"
+                autoComplete="tel-national"
+                {...register("personalPhone")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.personalPhone)}
+              />
+              {errors.personalPhone && (
+                <FieldError>{errors.personalPhone.message}</FieldError>
+              )}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="email">E-mail</FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                className="w-full min-w-0"
+                inputMode="email"
+                autoComplete="email"
+                {...register("email")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.email)}
+              />
+              {errors.email && <FieldError>{errors.email.message}</FieldError>}
+            </Field>
+          </div>
+        </SectionCard>
+
+        <SectionCard>
+          <SectionCardHeader icon={MapPin} title="Endereço" />
+          <div className="grid gap-4 px-5 py-4 sm:grid-cols-3">
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="address.cep">CEP</FieldLabel>
+              <Input
+                id="address.cep"
+                className="w-full min-w-0"
+                inputMode="numeric"
+                {...register("address.cep")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.address?.cep)}
+              />
+              {errors.address?.cep && (
+                <FieldError>{errors.address.cep.message}</FieldError>
+              )}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="address.estado">Estado</FieldLabel>
+              <Input
+                id="address.estado"
+                className="w-full min-w-0"
+                {...register("address.estado")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.address?.estado)}
+              />
+              {errors.address?.estado && (
+                <FieldError>{errors.address.estado.message}</FieldError>
+              )}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="address.cidade">Cidade</FieldLabel>
+              <Input
+                id="address.cidade"
+                className="w-full min-w-0"
+                {...register("address.cidade")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.address?.cidade)}
+              />
+              {errors.address?.cidade && (
+                <FieldError>{errors.address.cidade.message}</FieldError>
+              )}
+            </Field>
+
+            <Field className="min-w-0 sm:col-span-2">
+              <FieldLabel htmlFor="address.rua">Rua</FieldLabel>
+              <Input
+                id="address.rua"
+                className="w-full min-w-0"
+                {...register("address.rua")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.address?.rua)}
+              />
+              {errors.address?.rua && (
+                <FieldError>{errors.address.rua.message}</FieldError>
+              )}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="address.numero">Número</FieldLabel>
+              <Input
+                id="address.numero"
+                className="w-full min-w-0"
+                inputMode="numeric"
+                {...register("address.numero")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.address?.numero)}
+              />
+              {errors.address?.numero && (
+                <FieldError>{errors.address.numero.message}</FieldError>
+              )}
+            </Field>
+
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="address.bairro">Bairro</FieldLabel>
+              <Input
+                id="address.bairro"
+                className="w-full min-w-0"
+                {...register("address.bairro")}
+                disabled={isViewMode}
+                aria-invalid={Boolean(errors.address?.bairro)}
+              />
+              {errors.address?.bairro && (
+                <FieldError>{errors.address.bairro.message}</FieldError>
+              )}
+            </Field>
+
+            <Field className="min-w-0 sm:col-span-2">
+              <FieldLabel htmlFor="address.complemento">Complemento</FieldLabel>
+              <Input
+                id="address.complemento"
+                className="w-full min-w-0"
+                {...register("address.complemento")}
+                disabled={isViewMode}
+              />
+            </Field>
+          </div>
+        </SectionCard>
+
+        <SectionCard>
+          <SectionCardHeader icon={BadgeCheck} title="Resumo" />
+          <div className="space-y-4 px-5 py-4 text-sm text-muted-foreground">
+            <div className="flex items-start gap-3">
+              <Mail className="mt-0.5 h-4 w-4 text-primary" />
               <div>
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  {pageMeta.title}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  Dados essenciais para cadastro e participação nas campanhas.
-                </p>
+                <p className="font-medium text-foreground">Contato</p>
+                <p>E-mail e telefone para comunicação.</p>
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
-              <BadgeCheck className="h-4 w-4 text-green-700" />
-              <span>Validação automática</span>
+            <div className="flex items-start gap-3">
+              <Phone className="mt-0.5 h-4 w-4 text-primary" />
+              <div>
+                <p className="font-medium text-foreground">Telefone</p>
+                <p>Usado para suporte e confirmações.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <CalendarDays className="mt-0.5 h-4 w-4 text-primary" />
+              <div>
+                <p className="font-medium text-foreground">Dados pessoais</p>
+                <p>Validação para evitar inconsistências.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 rounded-md border border-border bg-muted/40 p-3">
+              <MapPin className="mt-0.5 h-4 w-4 text-primary" />
+              <p className="text-foreground">
+                Preencha o CEP para autopreencher o endereço.
+              </p>
             </div>
           </div>
-        </div>
+        </SectionCard>
 
-        <form onSubmit={handleSubmit(submitUser)} className="grid gap-6">
-          <div className="rounded-xl border border-green-200 bg-white p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <IdCard className="h-5 w-5 text-green-700" />
-              <h2 className="text-xl font-semibold text-gray-900">Dados do Usuário</h2>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="name">Nome Completo</FieldLabel>
-                <Input
-                  id="name"
-                  {...register("name")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.name)}
-                />
-                {errors.name && <FieldError>{errors.name.message}</FieldError>}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="dateOfBirth">Data de Nascimento</FieldLabel>
-                <Input
-                  id="dateOfBirth"
-                  type="date"
-                  {...register("dateOfBirth")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.dateOfBirth)}
-                />
-                {errors.dateOfBirth && (
-                  <FieldError>{errors.dateOfBirth.message}</FieldError>
-                )}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="cpf">CPF</FieldLabel>
-                <Input
-                  id="cpf"
-                  {...register("cpf")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.cpf)}
-                />
-                {errors.cpf && <FieldError>{errors.cpf.message}</FieldError>}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="rg">RG</FieldLabel>
-                <Input
-                  id="rg"
-                  {...register("rg")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.rg)}
-                />
-                {errors.rg && <FieldError>{errors.rg.message}</FieldError>}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="personalPhone">Telefone Celular</FieldLabel>
-                <Input
-                  id="personalPhone"
-                  {...register("personalPhone")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.personalPhone)}
-                />
-                {errors.personalPhone && (
-                  <FieldError>{errors.personalPhone.message}</FieldError>
-                )}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  {...register("email")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.email)}
-                />
-                {errors.email && <FieldError>{errors.email.message}</FieldError>}
-              </Field>
-            </div>
+        {!isViewMode && (
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Salvando..." : ctaLabel}
+            </Button>
           </div>
-
-          <div className="rounded-xl border border-green-200 bg-white p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-green-700" />
-              <h2 className="text-xl font-semibold text-gray-900">Endereço</h2>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Field>
-                <FieldLabel htmlFor="address.cep">CEP</FieldLabel>
-                <Input
-                  id="address.cep"
-                  {...register("address.cep")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.address?.cep)}
-                />
-                {errors.address?.cep && (
-                  <FieldError>{errors.address.cep.message}</FieldError>
-                )}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="address.estado">Estado</FieldLabel>
-                <Input
-                  id="address.estado"
-                  {...register("address.estado")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.address?.estado)}
-                />
-                {errors.address?.estado && (
-                  <FieldError>{errors.address.estado.message}</FieldError>
-                )}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="address.cidade">Cidade</FieldLabel>
-                <Input
-                  id="address.cidade"
-                  {...register("address.cidade")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.address?.cidade)}
-                />
-                {errors.address?.cidade && (
-                  <FieldError>{errors.address.cidade.message}</FieldError>
-                )}
-              </Field>
-
-              <Field className="sm:col-span-2">
-                <FieldLabel htmlFor="address.rua">Rua</FieldLabel>
-                <Input
-                  id="address.rua"
-                  {...register("address.rua")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.address?.rua)}
-                />
-                {errors.address?.rua && (
-                  <FieldError>{errors.address.rua.message}</FieldError>
-                )}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="address.numero">Número</FieldLabel>
-                <Input
-                  id="address.numero"
-                  {...register("address.numero")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.address?.numero)}
-                />
-                {errors.address?.numero && (
-                  <FieldError>{errors.address.numero.message}</FieldError>
-                )}
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="address.bairro">Bairro</FieldLabel>
-                <Input
-                  id="address.bairro"
-                  {...register("address.bairro")}
-                  disabled={isViewMode}
-                  aria-invalid={Boolean(errors.address?.bairro)}
-                />
-                {errors.address?.bairro && (
-                  <FieldError>{errors.address.bairro.message}</FieldError>
-                )}
-              </Field>
-
-              <Field className="sm:col-span-2">
-                <FieldLabel htmlFor="address.complemento">Complemento</FieldLabel>
-                <Input
-                  id="address.complemento"
-                  {...register("address.complemento")}
-                  disabled={isViewMode}
-                />
-              </Field>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-green-200 bg-white p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <BadgeCheck className="h-5 w-5 text-green-700" />
-              <h2 className="text-xl font-semibold text-gray-900">Resumo</h2>
-            </div>
-
-            <div className="space-y-4 text-sm text-gray-700">
-              <div className="flex items-start gap-3">
-                <Mail className="h-4 w-4 text-green-700 mt-0.5" />
-                <div>
-                  <p className="font-medium text-gray-900">Contato</p>
-                  <p className="text-gray-600">Email e telefone para comunicação.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone className="h-4 w-4 text-green-700 mt-0.5" />
-                <div>
-                  <p className="font-medium text-gray-900">Telefone</p>
-                  <p className="text-gray-600">Usado para suporte e confirmações.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CalendarDays className="h-4 w-4 text-green-700 mt-0.5" />
-                <div>
-                  <p className="font-medium text-gray-900">Dados pessoais</p>
-                  <p className="text-gray-600">
-                    Validação para evitar inconsistências.
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-lg border border-green-100 bg-green-50 p-4">
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-green-700 mt-0.5" />
-                  <p className="text-green-900">
-                    Preencha o CEP para autopreencher o endereço.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {!isViewMode && (
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Salvando..." : ctaLabel}
-              </Button>
-            </div>
-          )}
-        </form>
-      </div>
-    </div>
+        )}
+      </form>
+    </PageShell>
   );
 };

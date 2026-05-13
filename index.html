@@ -16,6 +16,63 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png" />
+    <script>
+      (function () {
+        var ADMIN_MANIFEST = "/admin.webmanifest";
+        var MAIN_MANIFEST = "/manifest.webmanifest";
+        var ADMIN_TITLE = "Golden Book Admin";
+        var MAIN_TITLE = "Golden Book";
+
+        function isAdminPath() {
+          var p = location.pathname;
+          return p === "/panel" || p.indexOf("/panel/") === 0;
+        }
+
+        function ensureManifestLink(href) {
+          var links = document.querySelectorAll('link[rel="manifest"]');
+          for (var i = 1; i < links.length; i++) {
+            if (links[i].parentNode) links[i].parentNode.removeChild(links[i]);
+          }
+          var link = links[0];
+          if (!link) {
+            link = document.createElement("link");
+            link.rel = "manifest";
+            document.head.appendChild(link);
+          }
+          if (link.getAttribute("href") !== href) {
+            link.setAttribute("href", href);
+          }
+        }
+
+        function applyManifestForPath() {
+          var admin = isAdminPath();
+          ensureManifestLink(admin ? ADMIN_MANIFEST : MAIN_MANIFEST);
+          window.__pwaScope = admin ? "admin" : "main";
+          var meta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+          var title = admin ? ADMIN_TITLE : MAIN_TITLE;
+          if (meta && meta.getAttribute("content") !== title) {
+            meta.setAttribute("content", title);
+          }
+        }
+
+        applyManifestForPath();
+        document.addEventListener("DOMContentLoaded", applyManifestForPath);
+
+        var origPush = history.pushState;
+        var origReplace = history.replaceState;
+        history.pushState = function () {
+          var ret = origPush.apply(this, arguments);
+          applyManifestForPath();
+          return ret;
+        };
+        history.replaceState = function () {
+          var ret = origReplace.apply(this, arguments);
+          applyManifestForPath();
+          return ret;
+        };
+        window.addEventListener("popstate", applyManifestForPath);
+      })();
+    </script>
 
     <link rel="apple-touch-startup-image" href="/splash/apple-splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" />
     <link rel="apple-touch-startup-image" href="/splash/apple-splash-2732x2048.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)" />

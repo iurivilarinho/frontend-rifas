@@ -23,13 +23,13 @@ import { Button } from "@/components/button/Button";
 import { SectionCard } from "@/components/card/SectionCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Loading } from "@/components/Loading";
 import {
   TableActionsDropdown,
   type ColumnAction,
 } from "@/components/table/components/TableActionsDropdown";
 import { TableRoot } from "@/components/table/Table";
 import { TableContent } from "@/components/table/TableContent";
+import { TableSkeleton } from "@/components/table/TableSkeleton";
 
 import {
   useGetMyRaffles,
@@ -216,7 +216,9 @@ export const RaffleModule = () => {
       />
 
       {isLoading ? (
-        <Loading />
+        <SectionCard>
+          <TableSkeleton rows={6} columns={5} />
+        </SectionCard>
       ) : !raffles || raffles.length === 0 ? (
         <SectionCard>
           <EmptyState

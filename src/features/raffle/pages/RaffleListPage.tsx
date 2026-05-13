@@ -5,9 +5,10 @@ import { StatusBadge } from "@/components/badge/StatusBadge";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageShell } from "@/components/layout/PageShell";
-import { Loading } from "@/components/Loading";
 import { Card, CardContent } from "@/components/ui/Card";
 import { PushNotificationsToggle } from "@/features/push";
+
+import { RaffleCardSkeleton } from "../components/RaffleCardSkeleton";
 
 import type { RaffleApiDto } from "../api/dtos/raffle";
 import {
@@ -114,13 +115,28 @@ export const RaffleListPage = () => {
     navigate(hasCpf ? `/raffle/${id}/${cpf}` : `/raffle/${id}`);
   };
 
-  if (isLoading) return <Loading />;
   if (error) {
     return (
       <PageShell>
         <p className="text-sm text-destructive">
           Erro ao carregar dados: {(error as Error).message}
         </p>
+      </PageShell>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <PageShell withTopNav={false}>
+        <PageHeader
+          title={hasCpf ? "Minhas compras" : "Rifas disponíveis"}
+          description="Carregando rifas..."
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <RaffleCardSkeleton key={i} />
+          ))}
+        </div>
       </PageShell>
     );
   }

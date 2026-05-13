@@ -11,11 +11,11 @@ import {
 
 import { StatusBadge, type StatusTone } from "@/components/badge/StatusBadge";
 import { Button } from "@/components/button/Button";
-import { KpiCard } from "@/components/card/KpiCard";
+import { KpiCard, KpiCardSkeleton } from "@/components/card/KpiCard";
 import { SectionCard, SectionCardHeader } from "@/components/card/SectionCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Loading } from "@/components/Loading";
+import { Skeleton } from "@/components/skeleton/Skeleton";
 
 import type { WithdrawalStatus } from "../api/dtos";
 import {
@@ -98,8 +98,32 @@ export const MyWithdrawalsModule = () => {
     }
   };
 
-  if (isLoading) return <Loading />;
-  if (!balance) return null;
+  if (isLoading || !balance) {
+    return (
+      <section className="flex flex-col gap-6">
+        <PageHeader
+          title="Saldo e saques"
+          description="Carregando saldo..."
+        />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <KpiCardSkeleton key={i} />
+          ))}
+        </div>
+        <SectionCard>
+          <SectionCardHeader icon={Inbox} title="Histórico de solicitações" />
+          <ul className="divide-y divide-border">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <li key={i} className="space-y-2 px-5 py-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48" />
+              </li>
+            ))}
+          </ul>
+        </SectionCard>
+      </section>
+    );
+  }
 
   return (
     <section className="flex flex-col gap-6">

@@ -8,13 +8,13 @@ import { SectionCard } from "@/components/card/SectionCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { FilterPills } from "@/components/filter/FilterPills";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Loading } from "@/components/Loading";
 import {
   TableActionsDropdown,
   type ColumnAction,
 } from "@/components/table/components/TableActionsDropdown";
 import { TableRoot } from "@/components/table/Table";
 import { TableContent } from "@/components/table/TableContent";
+import { TableSkeleton } from "@/components/table/TableSkeleton";
 
 import type { WithdrawalApiDto, WithdrawalStatus } from "../api/dtos";
 import {
@@ -255,7 +255,9 @@ export const AdminWithdrawalsModule = () => {
       />
 
       {isLoading ? (
-        <Loading />
+        <SectionCard>
+          <TableSkeleton rows={6} columns={5} />
+        </SectionCard>
       ) : items.length === 0 ? (
         <SectionCard>
           <EmptyState
