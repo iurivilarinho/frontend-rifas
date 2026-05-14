@@ -22,6 +22,16 @@ cleanupOutdatedCaches();
 
 registerRoute(
   new NavigationRoute(createHandlerBoundToURL("/index.html"), {
+    allowlist: [
+      /^\/$/,
+      /^\/login(\/|$)/,
+      /^\/raffles(\/|$)/,
+      /^\/raffle(\/|$)/,
+      /^\/panel(\/|$)/,
+      /^\/user(\/|$)/,
+      /^\/privacy(\/|$)/,
+      /^\/terms(\/|$)/,
+    ],
     denylist: [/^\/api\//, /\/documents\//, /\/rifas\//],
   }),
 );
