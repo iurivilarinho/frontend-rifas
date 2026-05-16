@@ -26,10 +26,21 @@ const wasLoggedBefore = () => {
   }
 };
 
+const isAuthBootstrapRequest = (url?: string) => {
+  if (!url) return false;
+  return (
+    url.includes("/auth/login") ||
+    url.includes("/auth/refresh") ||
+    url.includes("/auth/recovery")
+  );
+};
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    if (error.response?.status === 401 && wasLoggedBefore()) {
+    const status = error.response?.status;
+    const isBootstrap = isAuthBootstrapRequest(error.config?.url);
+    if (status === 401 && !isBootstrap && wasLoggedBefore()) {
       try {
         localStorage.removeItem("user");
       } catch {
