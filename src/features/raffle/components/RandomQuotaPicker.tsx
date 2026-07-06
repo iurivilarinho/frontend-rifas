@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { CircleHelp } from "lucide-react";
 
 import { Button } from "@/components/button/Button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/dialog/Dialog";
+import { DialogTitle } from "@radix-ui/react-dialog";
 import { NumberField } from "@/components/input/NumberField";
 import { PackageCard, type Package } from "./PackageCard";
-import { QuotaGrid } from "./QuotaGrid";
 
 type RandomQuotaPickerProps = {
   numberOfShares: number;
@@ -52,8 +57,8 @@ export const RandomQuotaPicker = ({
 }: RandomQuotaPickerProps) => {
   const [selectedPkgId, setSelectedPkgId] = useState<string | null>(null);
   const [quantityToGenerate, setQuantityToGenerate] = useState(0);
-  const [randomNumbers, setRandomNumbers] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [qtyOpen, setQtyOpen] = useState(false);
 
   const availableCount = useMemo(
     () => Math.max(0, numberOfShares - selectedNumbers.size),
@@ -87,22 +92,11 @@ export const RandomQuotaPicker = ({
     if (availableCount <= 0 && quantityToGenerate > 0) {
       setQuantityToGenerate(0);
       setSelectedPkgId(null);
-      setRandomNumbers([]);
+      onGenerate([]);
       setError("Não há cotas disponíveis no momento.");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputMin, inputMax, availableCount]);
-
-  const ebooksForNumbers = useMemo(
-    () => (quantityToGenerate > 0 ? Math.ceil(quantityToGenerate / 5) : 0),
-    [quantityToGenerate],
-  );
-
-  const resetGeneratedSelection = () => {
-    setRandomNumbers([]);
-    setError(null);
-    onGenerate([]);
-  };
 
   const validateQuantity = (qty: number) => {
     if (availableCount <= 0) return "Não há cotas disponíveis no momento.";
@@ -115,10 +109,10 @@ export const RandomQuotaPicker = ({
     return null;
   };
 
-  const generateNumbersFor = (qty: number) => {
+  const generateNumbersFor = (qty: number): boolean => {
     const msg = validateQuantity(qty);
     setError(msg);
-    if (msg) return;
+    if (msg) return false;
 
     const numbers = new Set<number>();
     const maxTries = numberOfShares * 10;
@@ -132,24 +126,34 @@ export const RandomQuotaPicker = ({
     const generated = Array.from(numbers);
     if (generated.length !== qty) {
       setError("Não foi possível gerar a quantidade solicitada (cotas insuficientes).");
-      setRandomNumbers([]);
-      return;
+      onGenerate([]);
+      return false;
     }
 
-    setRandomNumbers(generated);
-    onGenerate(generated); // o container leva o comprador até "Reservar"
+    onGenerate(generated); // os números aparecem no painel "Reserve sua cota"
     setError(null);
+    return true;
   };
 
-  const handleGenerate = () => generateNumbersFor(quantityToGenerate);
-
-  // Ao escolher um pacote, já gera os números na hora (menos um passo) e o
-  // container rola até o botão "Reservar".
+  // Ao escolher um pacote, já gera os números na hora (menos um passo).
   const selectPackage = (qty: number, id: string) => {
     const clamped = clampQty(qty);
     setSelectedPkgId(id);
     setQuantityToGenerate(clamped);
     generateNumbersFor(clamped);
+  };
+
+  // Quantidade manual (dentro do popup).
+  const handleQuantityChange = (v: number) => {
+    setSelectedPkgId(null);
+    const next = clampQty(v);
+    setQuantityToGenerate(next);
+    onGenerate([]);
+    setError(validateQuantity(next));
+  };
+
+  const handleGenerateManual = () => {
+    if (generateNumbersFor(quantityToGenerate)) setQtyOpen(false);
   };
 
   return (
@@ -180,63 +184,65 @@ export const RandomQuotaPicker = ({
           ))}
         </div>
 
-        <div className="w-full max-w-[360px] mx-auto space-y-4">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-border" />
-            <span className="relative bg-background px-3 text-sm font-medium text-muted-foreground">
-              OU
-            </span>
-          </div>
+        {/* Quem quiser outra quantidade abre este popup (não polui a página) */}
+        <div className="flex justify-center">
+          <Dialog open={qtyOpen} onOpenChange={setQtyOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full max-w-[360px]"
+                disabled={availableCount <= 0}
+              >
+                Ou informar outra quantidade
+              </Button>
+            </DialogTrigger>
 
-          <div className="space-y-2">
-            <div className="flex flex-row items-center gap-2">
-              <CircleHelp className="h-4 w-4 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground text-justify leading-relaxed">
-                {quantityToGenerate > 0
-                  ? `A cada 5 números = 1 ebook • Para ${quantityToGenerate} números: ${ebooksForNumbers} ebook(s).`
-                  : "A cada 5 números = 1 ebook."}
-              </p>
-            </div>
+            <DialogContent className="flex w-full flex-col overflow-hidden p-0 sm:max-w-md">
+              <header className="border-b border-border px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
+                <DialogTitle className="text-lg font-semibold leading-tight text-foreground">
+                  Informar quantidade
+                </DialogTitle>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Escolha quantos números você quer gerar.
+                </p>
+              </header>
 
-            <NumberField
-              value={quantityToGenerate}
-              onChange={(v) => {
-                setSelectedPkgId(null);
-                const next = clampQty(v);
-                setQuantityToGenerate(next);
-                resetGeneratedSelection();
-                setError(validateQuantity(next));
-              }}
-              min={inputMin}
-              max={inputMax}
-              step={1}
-            />
+              <div className="space-y-3 px-4 py-4 sm:px-6">
+                <NumberField
+                  value={quantityToGenerate}
+                  onChange={handleQuantityChange}
+                  min={inputMin}
+                  max={inputMax}
+                  step={1}
+                />
+                <div className="text-xs text-muted-foreground">
+                  Mín: {inputMin} • Máx: {inputMax}
+                </div>
+                {error && (
+                  <div className="rounded-md border p-3 text-sm text-red-600">
+                    {error}
+                  </div>
+                )}
+              </div>
 
-            <div className="text-xs text-muted-foreground">
-              Mín: {inputMin} • Máx: {inputMax}
-            </div>
-          </div>
+              <DialogFooter className="border-t border-border px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:px-6 sm:py-4">
+                <Button
+                  className="w-full"
+                  disabled={availableCount <= 0}
+                  onClick={handleGenerateManual}
+                >
+                  Gerar meus números
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
-          <Button
-            onClick={handleGenerate}
-            className="w-full max-w-[360px]"
-            disabled={availableCount <= 0}
-          >
-            Gerar números para sorteio
-          </Button>
-
-          {error && (
-            <div className="w-full max-w-[360px] rounded-md border p-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="scroll-mt-20">
-        <QuotaGrid numbers={randomNumbers} />
+        {error && !qtyOpen && (
+          <div className="w-full max-w-[360px] mx-auto rounded-md border p-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ import {
   useGetRaffleByIdAndBuyer,
 } from "../api/services/useRaffleService";
 import { NumberBadge } from "../components/NumberBadge";
+import { QuotaGrid } from "../components/QuotaGrid";
 import { RaffleProgressBar } from "../components/RaffleProgressBar";
 import { RandomQuotaPicker } from "../components/RandomQuotaPicker";
 import { ReservationDialog } from "../components/ReservationDialog";
@@ -313,6 +314,9 @@ export const RafflePage = () => {
                     {totalPrice > 0 ? formatBrl(totalPrice) : "—"}
                   </span>
                 </div>
+
+                {/* Números gerados aparecem aqui, junto do resumo/Reservar */}
+                <QuotaGrid label="Seus números" numbers={selectedButtons} />
 
                 {selectionValidation.message && (
                   <p className="text-xs text-amber-600">{selectionValidation.message}</p>
