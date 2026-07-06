@@ -55,6 +55,7 @@ export const RandomQuotaPicker = ({
   const [randomNumbers, setRandomNumbers] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+  const generateRef = useRef<HTMLDivElement>(null);
 
   const availableCount = useMemo(
     () => Math.max(0, numberOfShares - selectedNumbers.size),
@@ -109,6 +110,11 @@ export const RandomQuotaPicker = ({
     setSelectedPkgId(id);
     setQuantityToGenerate(clampQty(qty));
     resetGeneratedSelection();
+    // Leva o comprador direto para o próximo passo (gerar os números e reservar),
+    // já que os cards ficam acima da dobra e o botão de ação não fica visível.
+    requestAnimationFrame(() => {
+      generateRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
   };
 
   const validateQuantity = (qty: number) => {
@@ -219,7 +225,10 @@ export const RandomQuotaPicker = ({
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
+        <div
+          ref={generateRef}
+          className="flex flex-col items-center gap-3 scroll-mt-24"
+        >
           <Button
             onClick={handleGenerate}
             className="w-full max-w-[360px]"
