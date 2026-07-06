@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/button/Button";
 import { Field } from "@/components/input/base/Field";
@@ -14,7 +16,7 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/dialog/Dialog";
 import { onlyDigits } from "@/utils/formatters";
 
-import { useCreateReservation } from "@/features/reservation";
+import { useCreateReservation, getPaymentStatus } from "@/features/reservation";
 import type {
   CreateReservationRequest,
   MercadoPagoOrder,
@@ -47,9 +49,12 @@ export const PaymentCard = ({
     showToast: false,
   });
 
+  const queryClient = useQueryClient();
+
   const [order, setOrder] = useState<MercadoPagoOrder | null>(null);
   const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [paid, setPaid] = useState(false);
 
   const handleSubmit = async () => {
     if (!userData) return;
@@ -81,6 +86,37 @@ export const PaymentCard = ({
     const intervalId = window.setInterval(tick, 1000);
     return () => window.clearInterval(intervalId);
   }, [order]);
+
+  // Consulta ativa do status do pagamento (não depende só do webhook do Mercado Pago).
+  useEffect(() => {
+    if (!order?.id || paid) return;
+    let active = true;
+    const expirationMs = order.date_of_expiration
+      ? new Date(order.date_of_expiration).getTime()
+      : null;
+
+    const check = async () => {
+      // Para de consultar 1 min após expirar (margem para crédito tardio do Pix).
+      if (expirationMs !== null && Date.now() > expirationMs + 60000) return;
+      try {
+        const res = await getPaymentStatus(order.id);
+        if (!active) return;
+        if (res.paid) {
+          setPaid(true);
+          queryClient.invalidateQueries({ queryKey: ["raffles"] });
+        }
+      } catch {
+        // ignora erros transitórios de rede/consulta
+      }
+    };
+
+    check();
+    const intervalId = window.setInterval(check, 4000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [order, paid, queryClient]);
 
   const pixCopyPaste = order?.point_of_interaction?.transaction_data?.qr_code ?? "";
   const ticketUrl = order?.point_of_interaction?.transaction_data?.ticket_url ?? null;
@@ -130,7 +166,21 @@ export const PaymentCard = ({
           </div>
         )}
 
-        {order && (
+        {paid && (
+          <div className="mt-4 flex flex-col items-center gap-3 rounded-lg border border-green-500/40 bg-green-500/10 p-6 text-center">
+            <CheckCircle2 className="h-14 w-14 text-green-600" />
+            <div>
+              <p className="text-lg font-bold text-green-700 dark:text-green-400">
+                Pagamento confirmado!
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Seus números estão garantidos. Boa sorte! 🍀
+              </p>
+            </div>
+          </div>
+        )}
+
+        {order && !paid && (
           <>
             <div className="mt-6 flex items-center justify-between rounded-md border p-3">
               <div>

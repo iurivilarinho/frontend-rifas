@@ -16,6 +16,22 @@ const postReservation = async (
   return data;
 };
 
+export type PaymentStatus = "PENDING" | "PAID" | "EXPIRED" | "UNKNOWN";
+
+export interface PaymentStatusResponse {
+  status: PaymentStatus;
+  paid: boolean;
+}
+
+export const getPaymentStatus = async (
+  paymentId: number | string,
+): Promise<PaymentStatusResponse> => {
+  const { data } = await apiClient.get<PaymentStatusResponse>(
+    `/reservation/payment-status/${paymentId}`,
+  );
+  return data;
+};
+
 export const useCreateReservation = (
   options?: MutationOptions<MercadoPagoOrder, CreateReservationRequest>,
 ) => {
