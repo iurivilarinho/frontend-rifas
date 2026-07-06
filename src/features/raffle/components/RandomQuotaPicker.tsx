@@ -17,6 +17,13 @@ type RandomQuotaPickerProps = {
 
 const PACKAGES: Package[] = [
   {
+    id: "p1",
+    quantity: 1,
+    title: "AVULSO",
+    highlight: "1 número para o sorteio",
+    description: "1 número da sorte por apenas:",
+  },
+  {
     id: "p5",
     quantity: 5,
     title: "BÁSICO",
@@ -32,15 +39,6 @@ const PACKAGES: Package[] = [
     highlight: "10 números para o sorteio",
     description: "2 ebooks por apenas:",
     oldPrice: "R$50,00",
-  },
-  {
-    id: "p50",
-    quantity: 50,
-    title: "NITRO 2x",
-    tag: "MAIS VANTAGEM",
-    highlight: "50 números para o sorteio",
-    description: "10 ebooks por apenas:",
-    oldPrice: "R$100,00",
   },
 ];
 

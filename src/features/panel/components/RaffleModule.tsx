@@ -8,12 +8,14 @@ import {
   ListChecks,
   Pencil,
   Plus,
+  Send,
   Share2,
   ShoppingCart,
   Trophy,
   Users as UsersIcon,
   XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   RAFFLE_STATUS_LABEL,
@@ -69,6 +71,26 @@ export const RaffleModule = () => {
   const onSale = (id?: number) => id && navigate(`/raffle/${id}`);
   const onBuyers = (id?: number) => id && navigate(`/raffle/${id}/buyers`);
 
+  const onShareLink = async (raffle: RaffleWithStatus) => {
+    if (!raffle.id) return;
+    const url = `${window.location.origin}/raffle/${raffle.id}`;
+    const shareData = {
+      title: raffle.title ?? "Rifa",
+      text: raffle.title ? `Participe da rifa: ${raffle.title}` : "Participe da rifa!",
+      url,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copiado para a área de transferência!");
+      }
+    } catch {
+      // usuário cancelou a bandeja de compartilhamento — silencioso
+    }
+  };
+
   const handleStatus = async (raffle: RaffleWithStatus, target: RaffleStatus) => {
     if (!raffle.id) return;
     await updateStatus({ id: raffle.id, target });
@@ -105,6 +127,11 @@ export const RaffleModule = () => {
             }
           },
           icon: <Download className="h-4 w-4" />,
+        },
+        {
+          label: "Compartilhar",
+          onClick: () => onShareLink(raffle),
+          icon: <Send className="h-4 w-4" />,
         },
         {
           label: "Compartilhar acesso",
@@ -305,6 +332,11 @@ export const RaffleModule = () => {
                                 );
                             },
                             icon: <Download className="h-4 w-4" />,
+                          },
+                          {
+                            label: "Compartilhar",
+                            onClick: () => onShareLink(r),
+                            icon: <Send className="h-4 w-4" />,
                           },
                           {
                             label: "Compartilhar acesso",
