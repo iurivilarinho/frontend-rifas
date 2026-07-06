@@ -125,7 +125,7 @@ export const ReservationDialog = ({
         ) : null}
       </DialogTrigger>
 
-      <DialogContent className="flex h-[90dvh] max-h-[90dvh] w-full flex-col overflow-hidden p-0 sm:max-w-3xl lg:max-w-4xl">
+      <DialogContent className="flex max-h-[88dvh] w-full flex-col overflow-hidden p-0 sm:max-w-3xl lg:max-w-4xl">
         <header className="shrink-0 border-b border-border bg-card px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             Finalizar reserva
