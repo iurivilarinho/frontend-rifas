@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { CheckCircle2, FileText, Hash, Shuffle, Tag, Trophy } from "lucide-react";
 
@@ -80,6 +80,7 @@ export const RafflePage = () => {
   const [selectedButtons, setSelectedButtons] = useState<Set<number>>(new Set());
   const [soldButtons, setSoldButtons] = useState<Set<number>>(new Set());
   const [totalPrice, setTotalPrice] = useState(0);
+  const reserveRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!dataRifa) return;
@@ -104,6 +105,13 @@ export const RafflePage = () => {
     const updated = new Set(numbers);
     setSelectedButtons(updated);
     setTotalPrice((dataRifa?.quotaPrice ?? 0) * updated.size);
+    // Fecha o fluxo guiado: assim que os números são gerados, leva o comprador
+    // direto até o botão "Reservar".
+    if (numbers.length > 0) {
+      requestAnimationFrame(() => {
+        reserveRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
   };
 
   const handleButtonClick = (label: number) => {
@@ -310,13 +318,15 @@ export const RafflePage = () => {
                   <p className="text-xs text-amber-600">{selectionValidation.message}</p>
                 )}
 
-                <ReservationDialog
-                  raffleId={dataRifa.id!}
-                  disableButton={!selectionValidation.isValid}
-                  quotesSelected={selectedButtons}
-                  totalPrice={totalPrice}
-                  showButtonBuy={!hasCpf}
-                />
+                <div ref={reserveRef} className="scroll-mt-24">
+                  <ReservationDialog
+                    raffleId={dataRifa.id!}
+                    disableButton={!selectionValidation.isValid}
+                    quotesSelected={selectedButtons}
+                    totalPrice={totalPrice}
+                    showButtonBuy={!hasCpf}
+                  />
+                </div>
               </div>
             </SectionCard>
           </aside>

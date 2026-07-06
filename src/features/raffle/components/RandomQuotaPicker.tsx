@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CircleHelp } from "lucide-react";
 
 import { Button } from "@/components/button/Button";
@@ -54,8 +54,6 @@ export const RandomQuotaPicker = ({
   const [quantityToGenerate, setQuantityToGenerate] = useState(0);
   const [randomNumbers, setRandomNumbers] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const resultRef = useRef<HTMLDivElement>(null);
-  const generateRef = useRef<HTMLDivElement>(null);
 
   const availableCount = useMemo(
     () => Math.max(0, numberOfShares - selectedNumbers.size),
@@ -106,17 +104,6 @@ export const RandomQuotaPicker = ({
     onGenerate([]);
   };
 
-  const selectPackage = (qty: number, id: string) => {
-    setSelectedPkgId(id);
-    setQuantityToGenerate(clampQty(qty));
-    resetGeneratedSelection();
-    // Leva o comprador direto para o próximo passo (gerar os números e reservar),
-    // já que os cards ficam acima da dobra e o botão de ação não fica visível.
-    requestAnimationFrame(() => {
-      generateRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-  };
-
   const validateQuantity = (qty: number) => {
     if (availableCount <= 0) return "Não há cotas disponíveis no momento.";
     if (!Number.isFinite(qty) || qty <= 0)
@@ -128,35 +115,41 @@ export const RandomQuotaPicker = ({
     return null;
   };
 
-  const handleGenerate = () => {
-    const msg = validateQuantity(quantityToGenerate);
+  const generateNumbersFor = (qty: number) => {
+    const msg = validateQuantity(qty);
     setError(msg);
     if (msg) return;
 
     const numbers = new Set<number>();
     const maxTries = numberOfShares * 10;
     let tries = 0;
-    while (numbers.size < quantityToGenerate && tries < maxTries) {
+    while (numbers.size < qty && tries < maxTries) {
       const n = Math.floor(Math.random() * numberOfShares + 1);
       if (!selectedNumbers.has(n)) numbers.add(n);
       tries += 1;
     }
 
     const generated = Array.from(numbers);
-    if (generated.length !== quantityToGenerate) {
+    if (generated.length !== qty) {
       setError("Não foi possível gerar a quantidade solicitada (cotas insuficientes).");
       setRandomNumbers([]);
       return;
     }
 
     setRandomNumbers(generated);
-    onGenerate(generated);
+    onGenerate(generated); // o container leva o comprador até "Reservar"
     setError(null);
+  };
 
-    // Aguarda o render do QuotaGrid antes de rolar até ele.
-    requestAnimationFrame(() => {
-      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+  const handleGenerate = () => generateNumbersFor(quantityToGenerate);
+
+  // Ao escolher um pacote, já gera os números na hora (menos um passo) e o
+  // container rola até o botão "Reservar".
+  const selectPackage = (qty: number, id: string) => {
+    const clamped = clampQty(qty);
+    setSelectedPkgId(id);
+    setQuantityToGenerate(clamped);
+    generateNumbersFor(clamped);
   };
 
   return (
@@ -225,10 +218,7 @@ export const RandomQuotaPicker = ({
           </div>
         </div>
 
-        <div
-          ref={generateRef}
-          className="flex flex-col items-center gap-3 scroll-mt-24"
-        >
+        <div className="flex flex-col items-center gap-3">
           <Button
             onClick={handleGenerate}
             className="w-full max-w-[360px]"
@@ -245,7 +235,7 @@ export const RandomQuotaPicker = ({
         </div>
       </div>
 
-      <div ref={resultRef} className="scroll-mt-20">
+      <div className="scroll-mt-20">
         <QuotaGrid numbers={randomNumbers} />
       </div>
     </div>
