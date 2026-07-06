@@ -197,7 +197,7 @@ export const RandomQuotaPicker = ({
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="flex flex-col overflow-hidden p-0 sm:max-w-md">
+            <DialogContent className="top-4 translate-y-0 flex max-h-[92dvh] flex-col overflow-hidden p-0 sm:top-1/2 sm:-translate-y-1/2 sm:max-w-md">
               <header className="border-b border-border px-4 pt-4 pb-3 sm:px-6 sm:pt-5">
                 <DialogTitle className="text-lg font-semibold leading-tight text-foreground">
                   Informar quantidade
