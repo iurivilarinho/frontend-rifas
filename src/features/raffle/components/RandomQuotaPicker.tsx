@@ -215,9 +215,6 @@ export const RandomQuotaPicker = ({
                   max={inputMax}
                   step={1}
                 />
-                <div className="text-xs text-muted-foreground">
-                  Mín: {inputMin} • Máx: {inputMax}
-                </div>
                 {error && (
                   <div className="rounded-md border p-3 text-sm text-red-600">
                     {error}

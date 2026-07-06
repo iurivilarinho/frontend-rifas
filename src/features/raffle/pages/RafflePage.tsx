@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { CheckCircle2, FileText, Hash, Shuffle, Tag, Trophy } from "lucide-react";
+import { FileText, Hash, Shuffle, Tag, Trophy } from "lucide-react";
 
 import { StatusBadge } from "@/components/badge/StatusBadge";
 import { SectionCard, SectionCardHeader } from "@/components/card/SectionCard";
@@ -299,12 +299,6 @@ export const RafflePage = () => {
                   label={`${porcentagemVendida.toFixed(0)}% vendido`}
                   showValue={false}
                 />
-
-                <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 text-primary" />
-                  Mínimo {minPurchaseShares} · Máximo{" "}
-                  {Number.isFinite(maxPurchaseShares) ? maxPurchaseShares : "—"} cotas
-                </p>
 
                 <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
                   <span className="text-muted-foreground">
