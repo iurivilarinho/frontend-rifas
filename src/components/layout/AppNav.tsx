@@ -11,7 +11,7 @@ import {
   Settings,
   Share2,
   ShoppingCart,
-  Ticket,
+  BookOpen,
   Users,
   Wallet,
 } from "lucide-react";
@@ -64,7 +64,7 @@ const handleShare = async () => {
 
 const ADMIN_ITEMS: ReadonlyArray<NavItem> = [
   { label: "Dashboard", to: "/panel?tab=dashboard", icon: BarChart3 },
-  { label: "Rifas", to: "/panel?tab=raffles", icon: Ticket },
+  { label: "Rifas", to: "/panel?tab=raffles", icon: BookOpen },
   { label: "Saldo", to: "/panel?tab=balance", icon: Wallet },
   { label: "Usuários", to: "/panel?tab=users", icon: Users, adminOnly: true },
   { label: "Saques", to: "/panel?tab=withdrawals", icon: Wallet, adminOnly: true },

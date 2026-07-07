@@ -8,7 +8,6 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
-  Ticket,
   UserRoundCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -60,7 +59,7 @@ export const LandingPage = () => {
                       className="flex items-center space-x-2 cursor-pointer"
                       onSelect={() => scrollTo("como-funciona")}
                     >
-                      <Ticket />
+                      <BookOpen />
                       <p>Como funciona</p>
                     </CommandItem>
                     <CommandItem
@@ -112,7 +111,7 @@ export const LandingPage = () => {
               className="flex items-center gap-2 hover:underline"
               onClick={() => scrollTo("como-funciona")}
             >
-              <Ticket className="h-4 w-4" />
+              <BookOpen className="h-4 w-4" />
               <span>Como funciona</span>
             </button>
             <button
@@ -176,7 +175,7 @@ export const LandingPage = () => {
                 onClick={() => scrollTo("como-funciona")}
                 className="h-12"
               >
-                <Ticket className="mr-2 h-4 w-4" />
+                <BookOpen className="mr-2 h-4 w-4" />
                 Entender a dinâmica
               </Button>
             </div>
@@ -245,7 +244,7 @@ export const LandingPage = () => {
             </div>
             <div className="border rounded-xl p-6">
               <div className="flex items-center gap-2 mb-2">
-                <Ticket className="h-5 w-5 text-green-700" />
+                <BookOpen className="h-5 w-5 text-green-700" />
                 <h3 className="font-semibold text-gray-900">
                   3) Números do seu pedido
                 </h3>

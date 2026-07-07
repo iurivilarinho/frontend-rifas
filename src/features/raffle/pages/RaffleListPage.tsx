@@ -1,4 +1,4 @@
-import { CheckCircle2, Ticket, Trophy } from "lucide-react";
+import { CheckCircle2, BookOpen, Trophy } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { StatusBadge } from "@/components/badge/StatusBadge";
@@ -159,7 +159,7 @@ export const RaffleListPage = () => {
 
       {!raffles || raffles.length === 0 ? (
         <EmptyState
-          icon={Ticket}
+          icon={BookOpen}
           title="Nenhuma rifa encontrada"
           description={
             hasCpf
