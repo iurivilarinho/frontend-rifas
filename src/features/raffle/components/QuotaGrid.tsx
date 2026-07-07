@@ -25,9 +25,9 @@ export const QuotaGrid = ({ label, numbers, className }: QuotaGridProps) => {
           </span>
         </div>
         <div className="max-h-64 overflow-y-auto p-3">
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8">
+          <div className="flex flex-wrap gap-2">
             {list.map((n) => (
-              <NumberBadge key={n} value={n} />
+              <NumberBadge key={n} value={n} className="w-auto px-2" />
             ))}
           </div>
         </div>
