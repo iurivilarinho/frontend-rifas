@@ -21,7 +21,8 @@ const ICONS = [
   { name: "icon-512.png", size: 512, padding: 0.1 },
   { name: "icon-512-maskable.png", size: 512, padding: 0.2 },
   { name: "apple-touch-icon-180.png", size: 180, padding: 0.1 },
-  { name: "favicon-32.png", size: 32, padding: 0 },
+  // Favicon: fundo transparente e ticket preenchendo o ícone (sem o fundo claro).
+  { name: "favicon-32.png", size: 32, padding: 0, transparent: true, cover: true },
 ];
 
 const SPLASHES = [
@@ -37,7 +38,21 @@ const SPLASHES = [
   [750, 1334], [1334, 750],
 ];
 
-const generateIcon = async ({ name, size, padding }) => {
+const generateIcon = async ({ name, size, padding, transparent = false, cover = false }) => {
+  if (cover) {
+    // Recorta as margens e faz o ticket preencher o ícone, com fundo transparente.
+    await sharp(source)
+      .trim({ threshold: 12 })
+      .resize(size, size, {
+        fit: "cover",
+        position: "center",
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .png()
+      .toFile(resolve(publicDir, name));
+    console.log(`icon ${name} (${size}x${size}) [cover/transparente]`);
+    return;
+  }
   const inner = Math.round(size * (1 - padding * 2));
   const offset = Math.round(size * padding);
   const logo = await sharp(source)
@@ -49,7 +64,7 @@ const generateIcon = async ({ name, size, padding }) => {
       width: size,
       height: size,
       channels: 4,
-      background,
+      background: transparent ? { r: 0, g: 0, b: 0, alpha: 0 } : background,
     },
   })
     .composite([{ input: logo, top: offset, left: offset }])
