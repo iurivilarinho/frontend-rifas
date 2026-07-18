@@ -6,6 +6,7 @@ import { LandingPage } from "@/features/landing";
 import { LoginPage } from "@/features/auth";
 import { PanelPage } from "@/features/panel";
 import { PrivacyPolicyPage, TermsOfUsePage } from "@/features/legal";
+import { AdminTermsPage, TermsGate } from "@/features/terms";
 import { UserFormPage } from "@/features/user";
 import {
   RafflePage,
@@ -21,6 +22,7 @@ export const AppRoutes = () => {
   return (
     <BrowserRouter>
       <SessionGate />
+      <TermsGate />
       <AppNav />
       <Routes>
         {/* ===== Públicas ===== */}
@@ -63,6 +65,14 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute requireAdmin>
               <UserFormPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/terms"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminTermsPage />
             </ProtectedRoute>
           }
         />

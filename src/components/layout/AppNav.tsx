@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   BarChart3,
   BookSearch,
+  FileText,
   LogIn,
   LogOut,
   Menu as MenuIcon,
@@ -69,6 +70,7 @@ const ADMIN_ITEMS: ReadonlyArray<NavItem> = [
   { label: "Usuários", to: "/panel?tab=users", icon: Users, adminOnly: true },
   { label: "Saques", to: "/panel?tab=withdrawals", icon: Wallet, adminOnly: true },
   { label: "Config.", to: "/panel?tab=settings", icon: Settings, adminOnly: true },
+  { label: "Termos", to: "/admin/terms", icon: FileText, adminOnly: true },
 ];
 
 const buildPublicItems = (openPurchases: () => void): ReadonlyArray<NavItem> => [
@@ -82,6 +84,7 @@ const isAdminArea = (pathname: string) => {
     pathname.startsWith("/panel") ||
     pathname.startsWith("/raffle/form") ||
     pathname.startsWith("/user/form") ||
+    pathname.startsWith("/admin/") ||
     /^\/raffle\/[^/]+\/buyers/.test(pathname)
   );
 };
