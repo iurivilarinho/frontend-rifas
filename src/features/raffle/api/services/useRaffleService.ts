@@ -343,15 +343,24 @@ interface RefundReservationVariables {
   notes?: string;
 }
 
+interface RefundResult {
+  automatic: boolean;
+  detail: string;
+}
+
 const postRefund = async ({
   reservationId,
   notes,
-}: RefundReservationVariables): Promise<void> => {
-  await apiClient.post(`/reservation/${reservationId}/refund`, { notes });
+}: RefundReservationVariables): Promise<RefundResult> => {
+  const { data } = await apiClient.post<RefundResult>(
+    `/reservation/${reservationId}/refund`,
+    { notes },
+  );
+  return data;
 };
 
 export const useRefundReservation = (
-  options?: MutationOptions<void, RefundReservationVariables>,
+  options?: MutationOptions<RefundResult, RefundReservationVariables>,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -360,12 +369,13 @@ export const useRefundReservation = (
       queryClient.invalidateQueries({ queryKey: ["raffle-buyers"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       if (options?.showToast !== false) {
+        // Mostra a mensagem do backend (automático via MP vs. marcado p/ PIX manual).
         toast.success(
           resolveSuccessMessage({
             successMessage: options?.successMessage,
             data,
             variables,
-            defaultMessage: "Reserva estornada",
+            defaultMessage: data?.detail ?? "Reserva estornada",
           }),
         );
       }
