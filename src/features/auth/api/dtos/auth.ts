@@ -10,3 +10,11 @@ export interface AuthenticatedUser {
   email: string;
   roles?: string[];
 }
+
+export interface ClientRegistrationRequest {
+  name: string;
+  email: string;
+  password: string;
+  cpf: string;
+  personalPhone?: string;
+}

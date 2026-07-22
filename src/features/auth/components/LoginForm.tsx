@@ -105,6 +105,20 @@ export const LoginForm = () => {
       <Button type="submit" disabled={isSaving} className="w-full">
         {isSaving ? "Entrando..." : "Entrar"}
       </Button>
+
+      <p className="text-center text-sm text-muted-foreground">
+        Não tem uma conta?{" "}
+        <Link
+          to={
+            params.get("redirect")
+              ? `/cadastro?redirect=${encodeURIComponent(params.get("redirect")!)}`
+              : "/cadastro"
+          }
+          className="font-medium text-primary hover:underline"
+        >
+          Criar conta
+        </Link>
+      </p>
     </form>
   );
 };

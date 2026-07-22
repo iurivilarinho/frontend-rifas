@@ -6,6 +6,7 @@ import { setOnSessionExpired } from "@/api/clients/apiClient";
 
 const PUBLIC_PREFIXES = [
   "/login",
+  "/cadastro",
   "/raffles",
   "/raffle/", // /raffle/{id} (visão pública) — só protegidas têm guard direto
   "/privacy",

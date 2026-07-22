@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AppNav } from "@/components/layout/AppNav";
 import { CookieConsent } from "@/components/legal/CookieConsent";
 import { LandingPage } from "@/features/landing";
-import { LoginPage } from "@/features/auth";
+import { LoginPage, SignupPage } from "@/features/auth";
 import { PanelPage } from "@/features/panel";
 import { PrivacyPolicyPage, TermsOfUsePage } from "@/features/legal";
 import { AdminTermsPage, TermsGate } from "@/features/terms";
@@ -28,6 +28,7 @@ export const AppRoutes = () => {
         {/* ===== Públicas ===== */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/cadastro" element={<SignupPage />} />
         <Route path="/raffles/:cpf?" element={<RaffleListPage />} />
         <Route path="/raffle/:raffleId/:cpf?" element={<RafflePage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />

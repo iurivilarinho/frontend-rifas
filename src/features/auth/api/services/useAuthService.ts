@@ -4,11 +4,21 @@ import { apiClient } from "@/api/clients/apiClient";
 import { resolveErrorMessage } from "@/api/utils/resolveErrorMessage";
 import { resolveSuccessMessage } from "@/api/utils/resolveSuccessMessage";
 import type { MutationOptions } from "@/api/types";
-import type { AuthenticatedUser, LoginRequest } from "../dtos/auth";
+import type {
+  AuthenticatedUser,
+  ClientRegistrationRequest,
+  LoginRequest,
+} from "../dtos/auth";
 
 const postLogin = async (payload: LoginRequest): Promise<AuthenticatedUser> => {
   const { data } = await apiClient.post<AuthenticatedUser>("/login", payload);
   return data;
+};
+
+const postRegister = async (
+  payload: ClientRegistrationRequest,
+): Promise<void> => {
+  await apiClient.post("/auth/register", payload);
 };
 
 export const useLogin = (
@@ -35,6 +45,38 @@ export const useLogin = (
           resolveErrorMessage({
             error,
             fallbackMessage: options?.errorMessage ?? "Erro ao realizar login",
+          }),
+        );
+      }
+      options?.onError?.(error);
+    },
+  });
+};
+
+export const useRegisterClient = (
+  options?: MutationOptions<void, ClientRegistrationRequest>,
+) => {
+  return useMutation({
+    mutationFn: postRegister,
+    onSuccess: (data, variables) => {
+      if (options?.showToast !== false) {
+        toast.success(
+          resolveSuccessMessage({
+            successMessage: options?.successMessage,
+            data,
+            variables,
+            defaultMessage: "Cadastro realizado com sucesso",
+          }),
+        );
+      }
+      options?.onSuccess?.(data, variables);
+    },
+    onError: (error: Error) => {
+      if (options?.showToast !== false) {
+        toast.error(
+          resolveErrorMessage({
+            error,
+            fallbackMessage: options?.errorMessage ?? "Erro ao criar conta",
           }),
         );
       }
