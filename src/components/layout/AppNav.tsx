@@ -105,7 +105,7 @@ const isItemActive = (current: string, target: string) => {
 type Variant = "admin" | "public" | "hidden";
 
 const useNavVariant = (pathname: string): Variant => {
-  if (pathname === "/login") return "hidden";
+  if (pathname === "/login" || pathname === "/cadastro") return "hidden";
   if (isAdminArea(pathname)) return "admin";
   return "public";
 };
