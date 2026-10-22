@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Edge draws its own reveal/clear buttons; the form has its own toggle (PLT-033). */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,

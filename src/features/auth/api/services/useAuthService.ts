@@ -4,25 +4,39 @@ import { apiClient } from "@/api/clients/apiClient";
 import { resolveErrorMessage } from "@/api/utils/resolveErrorMessage";
 import { resolveSuccessMessage } from "@/api/utils/resolveSuccessMessage";
 import type { MutationOptions } from "@/api/types";
+import { turnstileHeaders } from "@/components/turnstile";
 import type {
   AuthenticatedUser,
   ClientRegistrationRequest,
   LoginRequest,
 } from "../dtos/auth";
 
-const postLogin = async (payload: LoginRequest): Promise<AuthenticatedUser> => {
-  const { data } = await apiClient.post<AuthenticatedUser>("/login", payload);
+export type LoginVariables = LoginRequest & { turnstileToken?: string | null };
+export type RegisterVariables = ClientRegistrationRequest & {
+  turnstileToken?: string | null;
+};
+
+const postLogin = async ({
+  turnstileToken,
+  ...payload
+}: LoginVariables): Promise<AuthenticatedUser> => {
+  const { data } = await apiClient.post<AuthenticatedUser>("/login", payload, {
+    headers: turnstileHeaders(turnstileToken),
+  });
   return data;
 };
 
-const postRegister = async (
-  payload: ClientRegistrationRequest,
-): Promise<void> => {
-  await apiClient.post("/auth/register", payload);
+const postRegister = async ({
+  turnstileToken,
+  ...payload
+}: RegisterVariables): Promise<void> => {
+  await apiClient.post("/auth/register", payload, {
+    headers: turnstileHeaders(turnstileToken),
+  });
 };
 
 export const useLogin = (
-  options?: MutationOptions<AuthenticatedUser, LoginRequest>,
+  options?: MutationOptions<AuthenticatedUser, LoginVariables>,
 ) => {
   return useMutation({
     mutationFn: postLogin,
@@ -54,7 +68,7 @@ export const useLogin = (
 };
 
 export const useRegisterClient = (
-  options?: MutationOptions<void, ClientRegistrationRequest>,
+  options?: MutationOptions<void, RegisterVariables>,
 ) => {
   return useMutation({
     mutationFn: postRegister,

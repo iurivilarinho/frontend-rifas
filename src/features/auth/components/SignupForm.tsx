@@ -1,15 +1,16 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/button/Button";
 import { Field, FieldError, FieldLabel } from "@/components/input/base/Field";
 import { Input } from "@/components/input/base/Input";
+import { PasswordInput } from "@/components/input/PasswordInput";
+import { TurnstileWidget, useTurnstile } from "@/components/turnstile";
+import { loadTurnstileConfig } from "../api/services/loadTurnstileConfig";
 import { resolveErrorMessage } from "@/api/utils/resolveErrorMessage";
 import { isValidCPF } from "@/utils/validations";
 import { maskCPF, maskPhoneBR, onlyDigits } from "@/utils/formatters";
@@ -51,7 +52,7 @@ export const SignupForm = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const queryClient = useQueryClient();
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const turnstile = useTurnstile(loadTurnstileConfig);
 
   const {
     register,
@@ -85,11 +86,15 @@ export const SignupForm = () => {
         personalPhone: data.personalPhone
           ? onlyDigits(data.personalPhone)
           : undefined,
+        turnstileToken: turnstile.token,
       });
 
+      // A token works once: the automatic login needs a fresh one.
+      const freshToken = await turnstile.renew();
       const user = await login({
         login: data.email.trim().toLowerCase(),
         password: data.password,
+        turnstileToken: freshToken,
       });
 
       try {
@@ -101,6 +106,7 @@ export const SignupForm = () => {
       toast.success("Cadastro realizado com sucesso!");
       navigate(sanitizeRedirect(redirectParam), { replace: true });
     } catch (error) {
+      turnstile.reset();
       toast.error(
         resolveErrorMessage({
           error: error as Error,
@@ -169,31 +175,19 @@ export const SignupForm = () => {
 
       <Field>
         <FieldLabel htmlFor="password">Senha</FieldLabel>
-        <div className="relative">
-          <Input
-            id="password"
-            type={isPasswordVisible ? "text" : "password"}
-            autoComplete="new-password"
-            {...register("password")}
-            aria-invalid={Boolean(errors.password)}
-          />
-          <button
-            type="button"
-            onClick={() => setIsPasswordVisible((prev) => !prev)}
-            className="absolute inset-y-0 right-0 flex items-center px-3 py-2 text-sm"
-            aria-label={isPasswordVisible ? "Ocultar senha" : "Mostrar senha"}
-          >
-            {isPasswordVisible ? <Eye /> : <EyeOff />}
-          </button>
-        </div>
+        <PasswordInput
+          id="password"
+          autoComplete="new-password"
+          {...register("password")}
+          aria-invalid={Boolean(errors.password)}
+        />
         {errors.password && <FieldError>{errors.password.message}</FieldError>}
       </Field>
 
       <Field>
         <FieldLabel htmlFor="confirmPassword">Confirmar senha</FieldLabel>
-        <Input
+        <PasswordInput
           id="confirmPassword"
-          type={isPasswordVisible ? "text" : "password"}
           autoComplete="new-password"
           {...register("confirmPassword")}
           aria-invalid={Boolean(errors.confirmPassword)}
@@ -203,7 +197,13 @@ export const SignupForm = () => {
         )}
       </Field>
 
-      <Button type="submit" disabled={isSaving} className="w-full">
+      {turnstile.enabled && <TurnstileWidget {...turnstile.widgetProps} />}
+
+      <Button
+        type="submit"
+        disabled={isSaving || !turnstile.ready}
+        className="w-full"
+      >
         {isSaving ? "Criando conta..." : "Criar conta"}
       </Button>
 

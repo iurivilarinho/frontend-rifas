@@ -1,14 +1,16 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/button/Button";
 import { Field, FieldError, FieldLabel } from "@/components/input/base/Field";
 import { Input } from "@/components/input/base/Input";
+import { PasswordInput } from "@/components/input/PasswordInput";
+import { TurnstileWidget, useTurnstile } from "@/components/turnstile";
+import { loadTurnstileConfig } from "../api/services/loadTurnstileConfig";
+import type { AuthenticatedUser } from "../api/dtos/auth";
 import { useLogin } from "../api/services/useAuthService";
 
 const loginSchema = z.object({
@@ -34,7 +36,7 @@ export const LoginForm = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const queryClient = useQueryClient();
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const turnstile = useTurnstile(loadTurnstileConfig);
 
   const {
     register,
@@ -48,7 +50,14 @@ export const LoginForm = () => {
   const { mutateAsync: login, isPending: isSaving } = useLogin();
 
   const onSubmit = async (data: LoginFormValues) => {
-    const user = await login(data);
+    let user: AuthenticatedUser;
+    try {
+      user = await login({ ...data, turnstileToken: turnstile.token });
+    } catch {
+      // The token works once: ask for a new one before the next try.
+      turnstile.reset();
+      return;
+    }
     try {
       localStorage.setItem("user", JSON.stringify(user));
     } catch {
@@ -74,22 +83,12 @@ export const LoginForm = () => {
 
       <Field>
         <FieldLabel htmlFor="password">Senha</FieldLabel>
-        <div className="relative">
-          <Input
-            id="password"
-            type={isPasswordVisible ? "text" : "password"}
-            {...register("password")}
-            aria-invalid={Boolean(errors.password)}
-          />
-          <button
-            type="button"
-            onClick={() => setIsPasswordVisible((prev) => !prev)}
-            className="absolute inset-y-0 right-0 flex items-center px-3 py-2 text-sm"
-            aria-label={isPasswordVisible ? "Ocultar senha" : "Mostrar senha"}
-          >
-            {isPasswordVisible ? <Eye /> : <EyeOff />}
-          </button>
-        </div>
+        <PasswordInput
+          id="password"
+          autoComplete="current-password"
+          {...register("password")}
+          aria-invalid={Boolean(errors.password)}
+        />
         {errors.password && <FieldError>{errors.password.message}</FieldError>}
       </Field>
 
@@ -102,7 +101,13 @@ export const LoginForm = () => {
         </Link>
       </div>
 
-      <Button type="submit" disabled={isSaving} className="w-full">
+      {turnstile.enabled && <TurnstileWidget {...turnstile.widgetProps} />}
+
+      <Button
+        type="submit"
+        disabled={isSaving || !turnstile.ready}
+        className="w-full"
+      >
         {isSaving ? "Entrando..." : "Entrar"}
       </Button>
 
